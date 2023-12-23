@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 // import adminAuth from "./admin/auth";
 // import { CustomError } from "@src/utilities/errors";
+import jwt from "jsonwebtoken";
 
 const app = express();
 
@@ -10,7 +11,8 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("hello there");
+  const token = jwt.sign({ hello: "there" }, "secret");
+  res.send(`hello there, ${token}`);
 });
 // app.use("/admin/auth", adminAuth);
 
