@@ -11,7 +11,6 @@ import express from "express";
 const resend = new Resend(process.env.RESEND_KEY);
 
 const SALT_ROUNDS = 15;
-
 const router = express.Router();
 
 router.post("/create_account", async (req, res) => {
