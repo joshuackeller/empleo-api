@@ -1,75 +1,78 @@
-// import prisma from "@src/utilities/prismaClient";
-// import { z } from "zod";
-// import bcrypt from "bcryptjs";
-// import { Resend } from "resend";
-// import SecretToken from "@src/utilities/SecretToken";
-// import { ClientError } from "@src/utilities/errors";
-// import nano_id from "@src/utilities/nano_id";
-// import { SignJWT } from "jose";
-// import express from "express";
+import prisma from "@src/utilities/prismaClient";
+import { z } from "zod";
+import bcrypt from "bcryptjs";
+import { Resend } from "resend";
+import SecretToken from "@src/utilities/SecretToken";
+import { ClientError } from "@src/utilities/errors";
+import nano_id from "@src/utilities/nano_id";
+import { SignJWT } from "jose";
+import express from "express";
 
-// const resend = new Resend(process.env.RESEND_KEY);
+const resend = new Resend(process.env.RESEND_KEY);
 
-// const SALT_ROUNDS = 15;
+const SALT_ROUNDS = 15;
 
-// const api = express.Router();
+const router = express.Router();
 
-// api.post("/create_account", async (req, res) => {
-//   const { email, first_name, last_name, password } = z
-//     .object({
-//       email: z.string().email(),
-//       first_name: z.string(),
-//       last_name: z.string(),
-//       password: z.string().min(8, "Password must be 8 characters or more "),
-//     })
-//     .parse(req.body);
-//   let admin = await prisma.admin.findUnique({
-//     where: { email },
-//   });
-//   if (!!admin) {
-//     throw new ClientError("Email already in use");
-//   } else {
-//     const hash = await bcrypt.hash(password, SALT_ROUNDS);
-//     admin = await prisma.admin.create({
-//       data: {
-//         id: nano_id(),
-//         email,
-//         first_name,
-//         last_name,
-//         email_confirmed: false,
-//         password: {
-//           create: {
-//             id: nano_id(),
-//             hash,
-//           },
-//         },
-//       },
-//     });
-//     // const token = sign({ admin_id: admin.id }, SecretToken.confirm_account);
-//     const secret = new TextEncoder().encode(SecretToken.confirm_account);
-//     const token = await new SignJWT({ admin_id: admin.id }).sign(secret);
-//     try {
-//       await resend.emails.send({
-//         from: "Empelo <no-reply@mail.joshkeller.info>",
-//         to: [email],
-//         subject: "Confirm Email",
-//         html: `
-//             <div>
-//                 <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/auth/confirm?token=${token}"> ${process.env.API_URL}/auth/confirm?token=${token}</a></p>
-//             </div>
-//             `,
-//         text: `<p>Click the following link to confirm your email: ${process.env.API_URL}/auth/confirm?token=${token}`,
-//       });
-//     } catch (error) {
-//       console.error(error);
-//     }
-//     return c.json({
-//       message: "Account created successfully. Confirm email before signing in.",
-//     });
-//   }
-// });
+router.post("/create_account", async (req, res) => {
+  const { email, first_name, last_name, password } = z
+    .object({
+      email: z.string().email(),
+      first_name: z.string(),
+      last_name: z.string(),
+      password: z.string().min(8, "Password must be 8 characters or more "),
+    })
+    .parse(req.body);
+  let admin = await prisma.admin.findUnique({
+    where: { email },
+  });
+  if (!!admin) {
+    throw new ClientError("Email already in use");
+  } else {
+    const hash = await bcrypt.hash(password, SALT_ROUNDS);
+    admin = await prisma.admin.create({
+      data: {
+        id: nano_id(),
+        email,
+        first_name,
+        last_name,
+        email_confirmed: false,
+        password: {
+          create: {
+            id: nano_id(),
+            hash,
+          },
+        },
+      },
+    });
+    // const token = sign({ admin_id: admin.id }, SecretToken.confirm_account);
+    const secret = new TextEncoder().encode(SecretToken.confirm_account);
+    const token = await new SignJWT({ admin_id: "blah" })
+      .setProtectedHeader({ alg: "HS256" })
+      .sign(secret);
+    try {
+      const response = await resend.emails.send({
+        from: "Empelo <no-reply@mail.joshkeller.info>",
+        to: [email],
+        subject: "Confirm Email",
+        html: `
+            <div>
+                <p>Click the following link to confirm your email:  <a href="${process.env.ROUTER_URL}/auth/confirm?token=${token}"> ${process.env.ROUTER_URL}/auth/confirm?token=${token}</a></p>
+            </div>
+            `,
+        text: `<p>Click the following link to confirm your email: ${process.env.ROUTER_URL}/auth/confirm?token=${token}`,
+      });
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+    res.json({
+      message: "Account created successfully. Confirm email before signing in.",
+    });
+  }
+});
 
-// api.get("/confirm", async (req, res) => {
+// router.get("/confirm", async (req, res) => {
 //   const { token } = z
 //     .object({
 //       token: z.string(),
@@ -99,7 +102,7 @@
 //   }
 // });
 
-// api.post("/resend", async (req, res) => {
+// router.post("/resend", async (req, res) => {
 //   const { email } = await z
 //     .object({
 //       email: z.string().email(),
@@ -120,10 +123,10 @@
 //         subject: "Confirm Email",
 //         html: `
 //             <div>
-//                 <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/auth/confirm?token=${token}"> ${process.env.API_URL}/auth/confirm?token=${token}</a></p>
+//                 <p>Click the following link to confirm your email:  <a href="${process.env.ROUTER_URL}/auth/confirm?token=${token}"> ${process.env.ROUTER_URL}/auth/confirm?token=${token}</a></p>
 //             </div>
 //             `,
-//         text: `Click the following link to confirm your email: ${process.env.API_URL}/auth/confirm?token=${token}`,
+//         text: `Click the following link to confirm your email: ${process.env.ROUTER_URL}/auth/confirm?token=${token}`,
 //       });
 //     } catch (error) {
 //       console.error(error);
@@ -139,7 +142,7 @@
 //   }
 // });
 
-// api.post("/sign_in", async (req, res) => {
+// router.post("/sign_in", async (req, res) => {
 //   const { email, password } = await z
 //     .object({
 //       email: z.string(),
@@ -182,7 +185,7 @@
 //   }
 // });
 
-// api.post("/rest_password/request", async (req, res) => {
+// router.post("/rest_password/request", async (req, res) => {
 //   const { email } = await z
 //     .object({
 //       email: z.string(),
@@ -222,7 +225,7 @@
 //   });
 // });
 
-// api.post("/reset_password", async (req, res) => {
+// router.post("/reset_password", async (req, res) => {
 //   const { token, password } = await z
 //     .object({
 //       token: z.string(),
@@ -255,4 +258,4 @@
 //   }
 // });
 
-// export default api;
+export default router;
