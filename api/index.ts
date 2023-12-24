@@ -14,14 +14,13 @@ app.use(express.json());
 
 app.get("/", async (req, res) => {
   try {
-    console.log(
-      await prisma.user.findUniqueOrThrow({
-        where: {
-          id: "test",
-        },
-      })
-    );
-    res.send("connected a successfully");
+    const user = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: "test",
+      },
+    });
+
+    res.json(user);
     // res.json({ user });
   } catch (error) {
     console.error("--ERROR--", error);
