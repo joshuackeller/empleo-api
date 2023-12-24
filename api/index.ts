@@ -3,6 +3,7 @@ import cors from "cors";
 // import adminAuth from "./admin/auth";
 // import { CustomError } from "@src/utilities/errors";
 import jwt from "jsonwebtoken";
+import prisma from "@src/utilities/prismaClient";
 
 const app = express();
 
@@ -10,9 +11,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  const token = jwt.sign({ hello: "there" }, "secret");
-  res.send(`hello there, ${token}`);
+app.get("/", async (req, res) => {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: "test",
+    },
+  });
+  res.json({ user });
 });
 // app.use("/admin/auth", adminAuth);
 

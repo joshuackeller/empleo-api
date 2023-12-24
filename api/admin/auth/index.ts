@@ -5,7 +5,7 @@ import { Resend } from "resend";
 import SecretToken from "@src/utilities/SecretToken";
 import { ClientError } from "@src/utilities/errors";
 import nano_id from "@src/utilities/nano_id";
-import { SignJWT } from "jose";
+import jwt from "jsonwebtoken";
 import express from "express";
 
 const resend = new Resend(process.env.RESEND_KEY);
@@ -44,14 +44,11 @@ router.post("/create_account", async (req, res) => {
         },
       },
     });
-    // const token = sign({ admin_id: admin.id }, SecretToken.confirm_account);
-    const secret = new TextEncoder().encode(SecretToken.confirm_account);
-    const token = await new SignJWT({ admin_id: "blah" })
-      .setProtectedHeader({ alg: "HS256" })
-      .sign(secret);
+
+    const token = jwt.sign({ admin_id: "blah" }, SecretToken.confirm_account);
     try {
       const response = await resend.emails.send({
-        from: "Empelo <no-reply@mail.joshkeller.info>",
+        from: "Empelo <no-reply@mail.empleo.work>",
         to: [email],
         subject: "Confirm Email",
         html: `
@@ -117,7 +114,7 @@ router.post("/create_account", async (req, res) => {
 //     const token = jwt.sign({ admin_id: admin.id }, SecretToken.confirm_account);
 //     try {
 //       await resend.emails.send({
-//         from: "Empleo <no-reply@mail.joshkeller.info>",
+//         from: "Empleo <no-reply@mail.empleo.work>",
 //         to: [email],
 //         subject: "Confirm Email",
 //         html: `
@@ -206,7 +203,7 @@ router.post("/create_account", async (req, res) => {
 //   const link = `${process.env.WEBSITE_URL}/recipes?authFlow=reset_password&token=${token}&email=${admin.email}`;
 //   try {
 //     await resend.emails.send({
-//       from: "Empleo <no-reply@mail.joshkeller.info>",
+//       from: "Empleo <no-reply@mail.empleo.work>",
 //       to: [email],
 //       subject: "Reset Password",
 //       html: `
