@@ -12,13 +12,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", async () => {
+app.get("/", async (req, res) => {
   try {
-    const user = await prisma.user.findUniqueOrThrow({
-      where: {
-        id: "test",
-      },
-    });
+    console.log(
+      await prisma.user.findUniqueOrThrow({
+        where: {
+          id: "test",
+        },
+      })
+    );
+    res.send("connected a successfully");
     // res.json({ user });
   } catch (error) {
     console.error("--ERROR--", error);
