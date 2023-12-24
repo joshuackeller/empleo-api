@@ -2,9 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 // import adminAuth from "./admin/auth";
 // import { CustomError } from "@src/utilities/errors";
-// import prisma from "../src/utilities/prismaClient";
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import prisma from "../src/utilities/prismaClient";
 
 const app = express();
 
