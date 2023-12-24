@@ -19,7 +19,9 @@ app.get("/", async (req, res) => {
     });
     res.json({ user });
   } catch (error) {
-    res.send(error?.toString() || "error");
+    console.error(error);
+    res.send("fat error");
+    // res.send(error?.toString() || "error");
   }
   res.send("hello there");
 });
