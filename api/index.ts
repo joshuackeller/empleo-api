@@ -28,7 +28,7 @@ app.get("/", async () => {
   // res.send("hello there");
 });
 
-app.get("/", async (req, res) => {
+app.get("/other", async (req, res) => {
   res.send("other");
 });
 // app.use("/admin/auth", adminAuth);
