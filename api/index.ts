@@ -19,7 +19,7 @@ app.get("/", async () => {
     });
     // res.json({ user });
   } catch (error) {
-    console.log("--TEST--", process.env.TEST_ENV);
+    console.log("--TEST--", process.env.DATABASE_URL);
     console.error("--ERROR--", error);
     // res.send("fat error");
     // res.send(error?.toString() || "error");
