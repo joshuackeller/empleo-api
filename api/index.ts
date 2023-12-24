@@ -27,6 +27,10 @@ app.get("/", async () => {
   }
   // res.send("hello there");
 });
+
+app.get("/", async (req, res) => {
+  res.send("other");
+});
 // app.use("/admin/auth", adminAuth);
 
 // app.use((err: CustomError, req: Request, res: Response) => {
