@@ -19,7 +19,8 @@ app.get("/", async () => {
     });
     // res.json({ user });
   } catch (error) {
-    console.error(error);
+    console.log("--TEST--", process.env.TEST_ENV);
+    console.error("--ERROR--", error);
     // res.send("fat error");
     // res.send(error?.toString() || "error");
   }
