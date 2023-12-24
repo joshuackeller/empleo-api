@@ -10,20 +10,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", async (req, res) => {
+app.get("/", async () => {
   try {
     const user = await prisma.user.findUniqueOrThrow({
       where: {
         id: "test",
       },
     });
-    res.json({ user });
+    // res.json({ user });
   } catch (error) {
     console.error(error);
-    res.send("fat error");
+    // res.send("fat error");
     // res.send(error?.toString() || "error");
   }
-  res.send("hello there");
+  // res.send("hello there");
 });
 // app.use("/admin/auth", adminAuth);
 
