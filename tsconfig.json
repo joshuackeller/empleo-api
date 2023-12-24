@@ -9,7 +9,7 @@
     "baseUrl": "./",
     "paths": {
       "@src/*": ["src/*"]
-    },
-    "include": ["api/**/*.ts", "src/**/*.ts", "prisma/*"]
-  }
+    }
+  },
+  "include": ["api/**/*.ts", "src/**/*.ts", "prisma/*"]
 }
