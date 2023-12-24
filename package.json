@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "npx tsx watch api/app.ts",
-    "vercel-build": "npx prisma generate"
+    "vercel-build": "echo hello"
   },
   "keywords": [],
   "author": "",
