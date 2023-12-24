@@ -12,12 +12,13 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", async (req, res) => {
-  const user = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: "test",
-    },
-  });
-  res.json({ user });
+  // const user = await prisma.user.findUniqueOrThrow({
+  //   where: {
+  //     id: "test",
+  //   },
+  // });
+  // res.json({ user });
+  res.send("hello");
 });
 // app.use("/admin/auth", adminAuth);
 
