@@ -1,41 +1,31 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
-// import adminAuth from "./admin/auth";
-// import { CustomError } from "@src/utilities/errors";
-import prisma from "../src/utilities/prismaClient";
+import adminAuth from "./admin/auth";
+import handler from "../src/middleware/handler";
+import errorHandler from "../src/middleware/errorHandler";
+import prisma from "../src/utilities/prisma";
 
 const app = express();
 
-// enable JSON body parser
 app.use(cors());
 app.use(express.json());
 
-app.get("/", async (req, res) => {
-  try {
+// TEST ENDPOINT
+app.get(
+  "/",
+  handler(async (_req, res) => {
     const user = await prisma.user.findUniqueOrThrow({
       where: {
         id: "test",
       },
     });
-
     res.json(user);
-    // res.json({ user });
-  } catch (error) {
-    console.error("--ERROR--", error);
-    // res.send("fat error");
-    // res.send(error?.toString() || "error");
-  }
-  // res.send("hello there");
-});
+  })
+);
 
-app.get("/other", async (req, res) => {
-  res.send("other");
-});
-// app.use("/admin/auth", adminAuth);
+// ROUTES
+app.use("/admin/auth", adminAuth);
 
-// app.use((err: CustomError, req: Request, res: Response) => {
-//   console.log("HANDLING ERROR");
-//   return res.status(err.status || 500).send("Something went wrong");
-// });
+app.use(errorHandler);
 
 export default app;

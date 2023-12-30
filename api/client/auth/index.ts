@@ -131,7 +131,7 @@
 //     const token = jwt.sign({ userId: user.id }, SecretToken.confirm_account);
 //     try {
 //       await resend.emails.send({
-//         from: "Empelo <no-reply@mail.joshkeller.info>",
+//         from: "Empleo <no-reply@mail.joshkeller.info>",
 //         to: [email],
 //         subject: "Confirm Email",
 //         html: `
