@@ -7,117 +7,229 @@ import { ClientError, CustomError } from "../../../src/utilities/errors";
 import nano_id from "../../../src/utilities/nano_id";
 import jwt from "jsonwebtoken";
 import express from "express";
+import errorHandler from "../../../src/middleware/errorHandler";
+import handler from "../../../src/middleware/handler";
 
 const resend = new Resend(process.env.RESEND_KEY);
 
 const SALT_ROUNDS = 15;
 const router = express.Router();
 
-router.post("/create_account", async (req, res) => {
-  const { email, first_name, last_name, password } = z
-    .object({
-      email: z.string().email(),
-      first_name: z.string(),
-      last_name: z.string(),
-      password: z.string().min(8, "Password must be 8 characters or more "),
-    })
-    .parse(req.body);
-  let admin = await prisma.admin.findUnique({
-    where: { email },
-  });
-  if (!!admin) {
-    throw new ClientError("Email already in use");
-  } else {
-    const hash = await bcrypt.hash(password, SALT_ROUNDS);
-    admin = await prisma.admin.create({
-      data: {
-        id: nano_id(),
-        email,
-        first_name,
-        last_name,
-        email_confirmed: false,
-        password: {
-          create: {
-            id: nano_id(),
-            hash,
+router.post(
+  "/create_account",
+  handler(async (req, res) => {
+    const { email, first_name, last_name, password } = z
+      .object({
+        email: z.string().email(),
+        first_name: z.string(),
+        last_name: z.string(),
+        password: z.string().min(8, "Password must be 8 characters or more "),
+      })
+      .parse(req.body);
+    let admin = await prisma.admin.findUnique({
+      where: { email },
+    });
+    if (!!admin) {
+      throw new ClientError("Email already in use");
+    } else {
+      const hash = await bcrypt.hash(password, SALT_ROUNDS);
+      admin = await prisma.admin.create({
+        data: {
+          id: nano_id(),
+          email,
+          first_name,
+          last_name,
+          email_confirmed: false,
+          password: {
+            create: {
+              id: nano_id(),
+              hash,
+            },
           },
         },
-      },
-    });
+      });
 
-    const token = jwt.sign({ admin_id: "blah" }, SecretToken.confirm_account);
-    try {
-      const response = await resend.emails.send({
-        from: "Empleo <no-reply@mail.empleo.work>",
-        to: [email],
-        subject: "Confirm Email",
-        html: `
+      const token = jwt.sign({ admin_id: "blah" }, SecretToken.confirm_account);
+      try {
+        const response = await resend.emails.send({
+          from: "Empleo <no-reply@mail.empleo.work>",
+          to: [email],
+          subject: "Confirm Email",
+          html: `
             <div>
-                <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/auth/confirm?token=${token}"> ${process.env.API_URL}/auth/confirm?token=${token}</a></p>
+                <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/admin/auth/confirm?token=${token}"> ${process.env.API_URL}/admin/auth/confirm?token=${token}</a></p>
             </div>
             `,
-        text: `<p>Click the following link to confirm your email: ${process.env.API_URL}/auth/confirm?token=${token}`,
+          text: `<p>Click the following link to confirm your email: ${process.env.API_URL}/admin/auth/confirm?token=${token}`,
+        });
+        console.log(response);
+      } catch (error) {
+        console.error(error);
+      }
+      res.json({
+        message:
+          "Account created successfully. Confirm email before signing in.",
       });
-      console.log(response);
-    } catch (error) {
-      console.error(error);
     }
-    res.json({
-      message: "Account created successfully. Confirm email before signing in.",
-    });
-  }
-});
+  })
+);
 
-router.get("/confirm", async (req, res) => {
-  const { token } = z
-    .object({
-      token: z.string(),
-    })
-    .parse(req.query);
+router.get(
+  "/confirm",
+  handler(async (req, res) => {
+    const { token } = z
+      .object({
+        token: z.string(),
+      })
+      .parse(req.query);
 
-  try {
-    const { admin_id } = jwt.verify(token, SecretToken.confirm_account) as any;
+    try {
+      const { admin_id } = jwt.verify(
+        token,
+        SecretToken.confirm_account
+      ) as any;
 
-    await prisma.admin.update({
+      await prisma.admin.update({
+        where: {
+          id: admin_id,
+        },
+        data: {
+          email_confirmed: true,
+        },
+      });
+
+      res.redirect(`${process.env.WEBSITE_URL}/admin/auth/sign_in`);
+    } catch (error) {
+      res.json({
+        error:
+          (error as any)?.message || "Something went wrong. Please try again.",
+      });
+    }
+  })
+);
+
+router.post(
+  "/resend",
+  handler(async (req, res) => {
+    const { email } = z
+      .object({
+        email: z.string().email(),
+      })
+      .parse(req.body);
+
+    const admin = await prisma.admin.findUnique({
       where: {
-        id: admin_id,
-      },
-      data: {
-        email_confirmed: true,
+        email,
       },
     });
+    if (!!admin) {
+      const token = jwt.sign(
+        { admin_id: admin.id },
+        SecretToken.confirm_account
+      );
+      try {
+        await resend.emails.send({
+          from: "Empleo <no-reply@mail.empleo.work>",
+          to: [email],
+          subject: "Confirm Email",
+          html: `
+            <div>
+                <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/admin/auth/confirm?token=${token}"> ${process.env.API_URL}/admin/auth/confirm?token=${token}</a></p>
+            </div>
+            `,
+          text: `Click the following link to confirm your email: ${process.env.API_URL}/admin/auth/confirm?token=${token}`,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+      res.json({
+        message: "Email sent successfully",
+      });
+    } else {
+      throw new ClientError(
+        "No account with this email was found. Please create a new account",
+        400
+      );
+    }
+  })
+);
 
-    res.redirect(`${process.env.WEBSITE_URL}/recipes?authFlow=confirm_success`);
-  } catch {
-    res.redirect(`${process.env.WEBSITE_URL}/recipes?authFlow=confirm_error`);
-  }
-});
+router.post(
+  "/sign_in",
+  handler(async (req, res) => {
+    const { email, password } = z
+      .object({
+        email: z.string(),
+        password: z.string(),
+      })
+      .parse(req.body);
 
-router.post("/resend", async (req, res) => {
-  const { email } = z
-    .object({
-      email: z.string().email(),
-    })
-    .parse(req.body);
+    let admin;
+    try {
+      admin = await prisma.admin.findUniqueOrThrow({
+        where: {
+          email,
+        },
+        include: {
+          password: true,
+        },
+      });
+    } catch {
+      throw new ClientError("Could not find an account with this email");
+    }
+    if (!admin.email_confirmed) {
+      throw new ClientError("Please confirm email before signing in");
+    }
 
-  const admin = await prisma.admin.findUnique({
-    where: {
-      email,
-    },
-  });
-  if (!!admin) {
-    const token = jwt.sign({ admin_id: admin.id }, SecretToken.confirm_account);
+    // Missing code
+    if (!admin.password) {
+      throw new ClientError("Please reset password");
+    }
+
+    const valid = await bcrypt.compare(password, admin.password.hash);
+
+    if (valid === true) {
+      const token = jwt.sign({ admin_id: admin.id }, SecretToken.auth);
+      res.json({ token });
+    } else {
+      throw new ClientError("Incorrect email or password", 403);
+    }
+  })
+);
+
+router.post(
+  "/rest_password/request",
+  handler(async (req, res) => {
+    const { email } = z
+      .object({
+        email: z.string(),
+      })
+      .parse(req.body);
+
+    let admin;
+    try {
+      admin = await prisma.admin.findUniqueOrThrow({
+        where: {
+          email,
+        },
+      });
+    } catch {
+      throw new ClientError("Could not find an account with this email", 403);
+    }
+
+    const token = jwt.sign({ admin_id: admin.id }, SecretToken.reset_password);
+    const link = `${process.env.WEBSITE_URL}/admin/auth/reset_password?token=${token}&email=${admin.email}`;
     try {
       await resend.emails.send({
         from: "Empleo <no-reply@mail.empleo.work>",
         to: [email],
-        subject: "Confirm Email",
+        subject: "Reset Password",
         html: `
-            <div>
-                <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/auth/confirm?token=${token}"> ${process.env.API_URL}/auth/confirm?token=${token}</a></p>
-            </div>
-            `,
-        text: `Click the following link to confirm your email: ${process.env.API_URL}/auth/confirm?token=${token}`,
+        <div>
+            <p>Click the following link to reset your password:  <a href="${link}">${link}</a></p>
+        </div>
+        `,
+        text: `Click the following link to confirm your email: ${link}`,
       });
     } catch (error) {
       console.error(error);
@@ -125,125 +237,45 @@ router.post("/resend", async (req, res) => {
     res.json({
       message: "Email sent successfully",
     });
-  } else {
-    throw new ClientError(
-      "No account with this email was found. Please create a new account",
-      400
-    );
-  }
-});
+  })
+);
 
-router.post("/sign_in", async (req, res) => {
-  const { email, password } = z
-    .object({
-      email: z.string(),
-      password: z.string(),
-    })
-    .parse(req.body);
+router.post(
+  "/reset_password",
+  handler(async (req, res) => {
+    const { token, password } = z
+      .object({
+        token: z.string(),
+        password: z.string(),
+      })
+      .parse(req.body);
 
-  let admin;
-  try {
-    admin = await prisma.admin.findUniqueOrThrow({
-      where: {
-        email,
-      },
-      include: {
-        password: true,
-      },
-    });
-  } catch {
-    throw new ClientError("Could not find an account with this email");
-  }
-  if (!admin.email_confirmed) {
-    throw new ClientError("Please confirm email before signing in");
-  }
+    try {
+      const { admin_id } = jwt.verify(token, SecretToken.reset_password) as any;
 
-  // Missing code
-  if (!admin.password) {
-    throw new ClientError("Please reset password");
-  }
+      const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  const valid = await bcrypt.compare(password, admin.password.hash);
-
-  if (valid === true) {
-    const token = jwt.sign({ admin_id: admin.id }, SecretToken.auth);
-    res.json({ token });
-  } else {
-    throw new ClientError("Incorrect email or password", 403);
-  }
-});
-
-router.post("/rest_password/request", async (req, res) => {
-  const { email } = z
-    .object({
-      email: z.string(),
-    })
-    .parse(req.body);
-
-  let admin;
-  try {
-    admin = await prisma.admin.findUniqueOrThrow({
-      where: {
-        email,
-      },
-    });
-  } catch {
-    throw new ClientError("Could not find an account with this email", 403);
-  }
-
-  const token = jwt.sign({ admin_id: admin.id }, SecretToken.reset_password);
-  const link = `${process.env.WEBSITE_URL}/auth/reset_password?token=${token}&email=${admin.email}`;
-  try {
-    await resend.emails.send({
-      from: "Empleo <no-reply@mail.empleo.work>",
-      to: [email],
-      subject: "Reset Password",
-      html: `
-        <div>
-            <p>Click the following link to reset your password:  <a href="${link}">${link}</a></p>
-        </div>
-        `,
-      text: `Click the following link to confirm your email: ${link}`,
-    });
-  } catch (error) {
-    console.error(error);
-  }
-  res.json({
-    message: "Email sent successfully",
-  });
-});
-
-router.post("/reset_password", async (req, res) => {
-  const { token, password } = z
-    .object({
-      token: z.string(),
-      password: z.string(),
-    })
-    .parse(req.body);
-
-  try {
-    const { admin_id } = jwt.verify(token, SecretToken.reset_password) as any;
-
-    const hash = await bcrypt.hash(password, SALT_ROUNDS);
-
-    let admin = await prisma.admin.update({
-      where: {
-        id: admin_id,
-      },
-      data: {
-        email_confirmed: true,
-        password: {
-          update: {
-            hash,
+      let admin = await prisma.admin.update({
+        where: {
+          id: admin_id,
+        },
+        data: {
+          email_confirmed: true,
+          password: {
+            update: {
+              hash,
+            },
           },
         },
-      },
-    });
+      });
 
-    res.json(admin);
-  } catch {
-    throw new ClientError("Could not reset password. Please try again.");
-  }
-});
+      res.json(admin);
+    } catch {
+      throw new ClientError("Could not reset password. Please try again.");
+    }
+  })
+);
+
+router.use(errorHandler);
 
 export default router;
