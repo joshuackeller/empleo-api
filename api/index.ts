@@ -16,12 +16,6 @@ app.use(
   })
 );
 app.use(express.json());
-app.options(
-  "*",
-  cors({
-    origin: "*",
-  })
-);
 
 // TEST ENDPOINT
 app.get(
