@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import handler from "../src/middleware/handler";
-import errorHandler from "../src/middleware/ErrorHandlers";
+import ErrorHandler from "../src/middleware/ErrorHandlers";
 import prisma from "../src/utilities/prisma";
 
 // IMPORT ADMIN ROUTES
@@ -34,6 +34,6 @@ app.get(
 app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
 
-app.use(errorHandler);
+app.use(ErrorHandler);
 
 export default app;
