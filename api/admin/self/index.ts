@@ -1,8 +1,4 @@
 import prisma from "../../../src/utilities/prisma";
-import { z } from "zod";
-import SecretToken from "../../../src/utilities/SecretToken";
-import { ClientError } from "../../../src/utilities/errors";
-import jwt from "jsonwebtoken";
 import express from "express";
 import handler from "../../../src/middleware/handler";
 import { EmpleoRequest } from "../../../src/utilities/interfaces";
