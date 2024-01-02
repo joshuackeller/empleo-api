@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import handler from "../src/middleware/handler";
-import errorHandler from "../src/middleware/ErrorHandler";
+import errorHandler from "../src/middleware/ErrorHandlers";
 import prisma from "../src/utilities/prisma";
 
 // IMPORT ADMIN ROUTES
