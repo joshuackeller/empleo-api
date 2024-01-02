@@ -48,7 +48,10 @@ router.post(
         },
       });
 
-      const token = jwt.sign({ admin_id: "blah" }, SecretToken.confirm_account);
+      const token = jwt.sign(
+        { admin_id: admin.id },
+        SecretToken.confirm_account
+      );
       try {
         const response = await resend.emails.send({
           from: "Empleo <no-reply@mail.empleo.work>",
@@ -122,6 +125,9 @@ router.post(
       },
     });
     if (!!admin) {
+      if (admin.email_confirmed === true) {
+        throw new ClientError("Email already confirmed");
+      }
       const token = jwt.sign(
         { admin_id: admin.id },
         SecretToken.confirm_account
