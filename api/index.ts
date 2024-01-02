@@ -1,9 +1,12 @@
 import express from "express";
 import cors from "cors";
-import adminAuth from "./admin/auth";
 import handler from "../src/middleware/handler";
-import errorHandler from "../src/middleware/errorHandler";
+import errorHandler from "../src/middleware/ErrorHandler";
 import prisma from "../src/utilities/prisma";
+
+// IMPORT ADMIN ROUTES
+import admin_auth from "./admin/auth";
+import admin_self from "./admin/self";
 
 const app = express();
 
@@ -23,8 +26,9 @@ app.get(
   })
 );
 
-// ROUTES
-app.use("/admin/auth", adminAuth);
+// ADMIN ROUTES
+app.use("/admin/auth", admin_auth);
+app.use("/admin/self", admin_self);
 
 app.use(errorHandler);
 

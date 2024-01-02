@@ -3,11 +3,10 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { Resend } from "resend";
 import SecretToken from "../../../src/utilities/SecretToken";
-import { ClientError, CustomError } from "../../../src/utilities/errors";
+import { ClientError } from "../../../src/utilities/errors";
 import nano_id from "../../../src/utilities/nano_id";
 import jwt from "jsonwebtoken";
 import express from "express";
-import errorHandler from "../../../src/middleware/errorHandler";
 import handler from "../../../src/middleware/handler";
 
 const resend = new Resend(process.env.RESEND_KEY);
@@ -275,7 +274,5 @@ router.post(
     }
   })
 );
-
-router.use(errorHandler);
 
 export default router;
