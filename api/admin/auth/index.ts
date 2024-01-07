@@ -100,7 +100,7 @@ router.get(
         },
       });
 
-      res.redirect(`${process.env.WEBSITE_URL}/admin/auth/sign_in`);
+      res.redirect(`${process.env.WEBSITE_URL}/auth/sign_in`);
     } catch (error) {
       res.json({
         error:
@@ -203,7 +203,7 @@ router.post(
 );
 
 router.post(
-  "/rest_password/request",
+  "/reset_password/request",
   handler(async (req, res) => {
     const { email } = z
       .object({
@@ -222,8 +222,14 @@ router.post(
       throw new ClientError("Could not find an account with this email", 403);
     }
 
-    const token = jwt.sign({ admin_id: admin.id }, SecretToken.reset_password);
-    const link = `${process.env.WEBSITE_URL}/admin/auth/reset_password?token=${token}&email=${admin.email}`;
+    const token = jwt.sign(
+      { admin_id: admin.id, email },
+      SecretToken.reset_password,
+      {
+        expiresIn: "1hr",
+      }
+    );
+    const link = `${process.env.WEBSITE_URL}/auth/reset_password?token=${token}`;
     try {
       await resend.emails.send({
         from: "Empleo <no-reply@mail.empleo.work>",
@@ -275,8 +281,13 @@ router.post(
       });
 
       res.json(admin);
-    } catch {
-      throw new ClientError("Could not reset password. Please try again.");
+    } catch (error) {
+      let message =
+        (error as any).message || "Could not reset password. Please try again.";
+      if (message === "jwt expired") {
+        message = "Link expired";
+      }
+      throw new ClientError(message);
     }
   })
 );
