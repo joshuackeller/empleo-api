@@ -32,13 +32,30 @@ router.post(
       throw new ClientError("Email already in use");
     } else {
       const hash = await bcrypt.hash(password, SALT_ROUNDS);
-      admin = await prisma.admin.create({
-        data: {
+
+      admin = await prisma.admin.upsert({
+        where: {
+          email,
+        },
+        update: {
+          first_name,
+          last_name,
+          email_confirmed: false,
+          self_created: true,
+          password: {
+            create: {
+              id: nano_id(),
+              hash,
+            },
+          },
+        },
+        create: {
           id: nano_id(),
           email,
           first_name,
           last_name,
           email_confirmed: false,
+          self_created: true,
           password: {
             create: {
               id: nano_id(),
@@ -122,6 +139,7 @@ router.post(
     const admin = await prisma.admin.findUnique({
       where: {
         email,
+        self_created: true,
       },
     });
     if (!!admin) {
@@ -174,6 +192,7 @@ router.post(
       admin = await prisma.admin.findUniqueOrThrow({
         where: {
           email,
+          self_created: true,
         },
         include: {
           password: true,
@@ -216,6 +235,7 @@ router.post(
       admin = await prisma.admin.findUniqueOrThrow({
         where: {
           email,
+          self_created: true,
         },
       });
     } catch {

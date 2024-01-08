@@ -4,6 +4,7 @@ import handler from "../../../src/middleware/handler";
 import { EmpleoRequest } from "../../../src/utilities/interfaces";
 import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
 import { z } from "zod";
+import { SelfSelect } from "../../../src/select/admin";
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ router.get(
       where: {
         id: req.admin_id,
       },
+      select: SelfSelect,
     });
 
     res.json(admin);
@@ -37,6 +39,7 @@ router.put(
         id: req.admin_id,
       },
       data,
+      select: SelfSelect,
     });
 
     res.json(admin);

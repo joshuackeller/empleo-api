@@ -10,7 +10,7 @@ export default function AuthMiddleware(
   next: NextFunction
 ) {
   req.admin_id = undefined;
-  req.organization_id = undefined;
+
   if (!req.headers.authorization) {
     throw new ClientError("No authorization header", 403);
   }
@@ -21,7 +21,6 @@ export default function AuthMiddleware(
   ) as AdminJWTObject;
 
   req.admin_id = admin_id;
-  req.organization_id = req.headers.organization as string | undefined;
 
   next();
 }

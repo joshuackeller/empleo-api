@@ -27,6 +27,7 @@ model Admin {
   last_name       String?
   email           String         @unique
   email_confirmed Boolean        @default(false)
+  self_created    Boolean        @default(false)
   password        Password?
   organizations   Organization[]
   created_at      DateTime       @default(now())

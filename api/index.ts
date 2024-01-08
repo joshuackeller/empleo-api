@@ -7,7 +7,8 @@ import prisma from "../src/utilities/prisma";
 // IMPORT ADMIN ROUTES
 import admin_auth from "./admin/auth";
 import admin_self from "./admin/self";
-import admin_self_organizations from "./admin/self/organizations";
+import admin_organizations from "./admin/organizations";
+import admin_admins from "./admin/admins";
 
 const app = express();
 
@@ -34,7 +35,8 @@ app.get(
 // ADMIN ROUTES
 app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
-app.use("/admin/self/organizations", admin_self_organizations);
+app.use("/admin/organizations", admin_organizations);
+app.use("/admin/admins", admin_admins);
 
 app.use(ErrorHandler);
 

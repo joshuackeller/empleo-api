@@ -1,33 +1,35 @@
-import prisma from "../../../../src/utilities/prisma";
+import prisma from "../../../src/utilities/prisma";
 import express from "express";
-import handler from "../../../../src/middleware/handler";
-import { EmpleoRequest } from "../../../../src/utilities/interfaces";
-import AuthMiddleware from "../../../../src/middleware/AuthMiddleware";
+import handler from "../../../src/middleware/handler";
+import { EmpleoRequest } from "../../../src/utilities/interfaces";
+import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
 import { z } from "zod";
-import nano_id from "../../../../src/utilities/nano_id";
+import nano_id from "../../../src/utilities/nano_id";
+import { OrganizationSelect } from "../../../src/select/admin";
 
 const router = express.Router();
 
 router.use("*", AuthMiddleware);
 
 router.get(
-  "/:organizationId",
+  "/:organization_id",
   handler(async (req: EmpleoRequest, res) => {
-    const { organizationId } = z
+    const { organization_id } = z
       .object({
-        organizationId: z.string(),
+        organization_id: z.string(),
       })
       .parse(req.params);
 
     const organization = await prisma.organization.findUniqueOrThrow({
       where: {
-        id: organizationId,
+        id: organization_id,
         admins: {
           some: {
             id: req.admin_id,
           },
         },
       },
+      select: OrganizationSelect,
     });
 
     res.json(organization);
@@ -45,6 +47,7 @@ router.get(
           },
         },
       },
+      select: OrganizationSelect,
     });
 
     res.json(organization);
@@ -59,7 +62,7 @@ router.post(
         title: z.string(),
       })
       .parse(req.body);
-    console.log(req.admin_id);
+
     const organization = await prisma.organization.create({
       data: {
         id: nano_id(),
@@ -77,7 +80,7 @@ router.post(
 );
 
 router.put(
-  "/:organizationId",
+  "/:organization_id",
   handler(async (req: EmpleoRequest, res) => {
     const { title } = z
       .object({
@@ -85,15 +88,15 @@ router.put(
       })
       .parse(req.body);
 
-    const { organizationId } = z
+    const { organization_id } = z
       .object({
-        organizationId: z.string(),
+        organization_id: z.string(),
       })
       .parse(req.params);
 
     const organization = await prisma.organization.update({
       where: {
-        id: organizationId,
+        id: organization_id,
         admins: {
           some: {
             id: req.admin_id,
