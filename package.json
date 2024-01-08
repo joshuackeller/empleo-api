@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "npx tsx watch api/app.ts",
     "vercel-build": "echo hello",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "prisma": "npx prisma"
   },
   "keywords": [],
   "author": "",
