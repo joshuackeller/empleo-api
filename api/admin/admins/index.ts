@@ -7,6 +7,14 @@ import { z } from "zod";
 import OrgMiddleware from "../../../src/middleware/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
 import { AdminSelect } from "../../../src/select/admin";
+import CreateRedisAdminOrgKey from "../../../src/utilities/CreateRedisAdminOrgKey";
+
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: "https://us1-endless-lemur-38129.upstash.io",
+  token: process.env.UPSTASH_TOKEN || "",
+});
 
 const router = express.Router();
 
@@ -120,6 +128,13 @@ router.delete(
       },
       select: AdminSelect,
     });
+
+    // Expire current redis admin org key
+    const admin_org_key = CreateRedisAdminOrgKey(
+      admin_id,
+      req.headers.organization as string
+    );
+    redis.expire(admin_org_key, 0);
 
     res.json(admin);
   })

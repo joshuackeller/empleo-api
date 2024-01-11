@@ -10,6 +10,13 @@ import admin_self from "./admin/self";
 import admin_organizations from "./admin/organizations";
 import admin_admins from "./admin/admins";
 
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: "https://us1-endless-lemur-38129.upstash.io",
+  token: process.env.UPSTASH_TOKEN || "",
+});
+
 const app = express();
 
 app.use(
@@ -29,6 +36,38 @@ app.get(
       },
     });
     res.json(user);
+  })
+);
+
+app.get(
+  "/test",
+  handler(async (_req, res) => {
+    const KEY = "testing-ex-1";
+    let cache = "hit";
+
+    let data = await redis.get(KEY);
+    if (!data) {
+      cache = "missed";
+      const tenSecondsFromNow = Math.floor(Date.now() / 1000) + 10;
+
+      await redis.set(KEY, true, {
+        exat: tenSecondsFromNow,
+      });
+    }
+    data = await redis.get(KEY);
+    res.json({ data, cache });
+  })
+);
+
+app.get(
+  "/test-sql",
+  handler(async (req, res) => {
+    const { id } = await prisma.admin.findUniqueOrThrow({
+      where: {
+        id: "qhusMq1GLufC",
+      },
+    });
+    res.json({ id });
   })
 );
 
