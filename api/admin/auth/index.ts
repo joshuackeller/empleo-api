@@ -11,7 +11,7 @@ import handler from "../../../src/middleware/handler";
 
 const resend = new Resend(process.env.RESEND_KEY);
 
-const SALT_ROUNDS = 15;
+const SALT_ROUNDS = 13;
 const router = express.Router();
 
 router.post(
