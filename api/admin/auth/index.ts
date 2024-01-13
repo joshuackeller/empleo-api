@@ -26,7 +26,7 @@ router.post(
       })
       .parse(req.body);
     let admin = await prisma.admin.findUnique({
-      where: { email },
+      where: { email, self_created: true },
     });
     if (!!admin) {
       throw new ClientError("Email already in use");

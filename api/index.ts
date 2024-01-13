@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import handler from "../src/middleware/handler";
-import ErrorHandler from "../src/middleware/ErrorHandlers";
+import ErrorHandler from "../src/middleware/ErrorHandler";
 import prisma from "../src/utilities/prisma";
 
 // IMPORT ADMIN ROUTES
@@ -36,38 +36,6 @@ app.get(
       },
     });
     res.json(user);
-  })
-);
-
-app.get(
-  "/test",
-  handler(async (_req, res) => {
-    const KEY = "testing-ex-1";
-    let cache = "hit";
-
-    let data = await redis.get(KEY);
-    if (!data) {
-      cache = "missed";
-      const tenSecondsFromNow = Math.floor(Date.now() / 1000) + 10;
-
-      await redis.set(KEY, true, {
-        exat: tenSecondsFromNow,
-      });
-    }
-    data = await redis.get(KEY);
-    res.json({ data, cache });
-  })
-);
-
-app.get(
-  "/test-sql",
-  handler(async (req, res) => {
-    const { id } = await prisma.admin.findUniqueOrThrow({
-      where: {
-        id: "qhusMq1GLufC",
-      },
-    });
-    res.json({ id });
   })
 );
 

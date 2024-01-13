@@ -69,7 +69,7 @@ router.post(
       .object({
         email: z.string().email(),
       })
-      .parse(req.params);
+      .parse(req.body);
 
     const admin = await prisma.admin.upsert({
       where: {
