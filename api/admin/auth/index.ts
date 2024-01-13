@@ -8,7 +8,6 @@ import nano_id from "../../../src/utilities/nano_id";
 import jwt from "jsonwebtoken";
 import express from "express";
 import handler from "../../../src/middleware/handler";
-//test
 
 const resend = new Resend(process.env.RESEND_KEY);
 
