@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import handler from "../src/middleware/handler";
-import ErrorHandler from "../src/middleware/ErrorHandlers";
+import ErrorHandler from "../src/middleware/ErrorHandler";
 import prisma from "../src/utilities/prisma";
 
 // IMPORT ADMIN ROUTES
@@ -9,6 +9,13 @@ import admin_auth from "./admin/auth";
 import admin_self from "./admin/self";
 import admin_organizations from "./admin/organizations";
 import admin_admins from "./admin/admins";
+
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: "https://us1-endless-lemur-38129.upstash.io",
+  token: process.env.UPSTASH_TOKEN || "",
+});
 
 const app = express();
 

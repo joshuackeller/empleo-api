@@ -11,7 +11,7 @@ import handler from "../../../src/middleware/handler";
 
 const resend = new Resend(process.env.RESEND_KEY);
 
-const SALT_ROUNDS = 15;
+const SALT_ROUNDS = 13;
 const router = express.Router();
 
 router.post(
@@ -26,7 +26,7 @@ router.post(
       })
       .parse(req.body);
     let admin = await prisma.admin.findUnique({
-      where: { email },
+      where: { email, self_created: true },
     });
     if (!!admin) {
       throw new ClientError("Email already in use");
