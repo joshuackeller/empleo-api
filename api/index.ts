@@ -18,7 +18,6 @@ const redis = new Redis({
 });
 
 const app = express();
-//
 
 app.use(
   cors({
