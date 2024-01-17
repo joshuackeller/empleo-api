@@ -17,6 +17,7 @@
     "@upstash/redis": "^1.28.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "drizzle-orm": "^0.29.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^3.3.4",
