@@ -8,7 +8,6 @@ import prisma from "../src/utilities/prisma";
 import admin_auth from "./admin/auth";
 import admin_self from "./admin/self";
 import admin_organizations from "./admin/organizations";
-
 import admin_admins from "./admin/admins";
 
 import { drizzle } from "drizzle-orm/postgres-js";
