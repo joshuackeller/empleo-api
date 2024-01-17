@@ -15,6 +15,8 @@ model Organization {
   title      String
   admins     Admin[]
   users      User[]
+  // image_id   String?
+  // image      Image?   @relation(fields: [image_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -60,3 +62,16 @@ model Password {
 
   @@map("password")
 }
+
+// model Image {
+//   id              String   @id
+//   organization_id String
+//   url             String
+//   created_at      DateTime @default(now())
+//   updated_at      DateTime @updatedAt
+
+//   organization Organization[]
+
+//   @@unique([organization_id, id])
+//   @@map("image")
+// }
