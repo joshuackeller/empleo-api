@@ -207,7 +207,7 @@ app.get(
 );
 
 app.get(
-  "/tes2/prisma",
+  "/test2/prisma",
   handler(async (req, res) => {
     // warmup
     await prisma.organization.findFirst({
