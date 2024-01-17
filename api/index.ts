@@ -10,12 +10,13 @@ import admin_self from "./admin/self";
 import admin_organizations from "./admin/organizations";
 import admin_admins from "./admin/admins";
 
-import { Redis } from "@upstash/redis";
+import { drizzle } from "drizzle-orm/postgres-js";
+import * as schema from "../drizzle/schema";
+import postgres from "postgres";
+import { eq, sql as s } from "drizzle-orm";
 
-const redis = new Redis({
-  url: "https://us1-endless-lemur-38129.upstash.io",
-  token: process.env.UPSTASH_TOKEN || "",
-});
+const sql = postgres(process.env.PROXY_URL!, { ssl: "require" });
+const db = drizzle(sql, { schema });
 
 const app = express();
 
@@ -120,7 +121,7 @@ app.get(
 
 app.get(
   "/test/prisma",
-  handler(async (req, res) => {
+  handler(async (_req, res) => {
     // warmup
     await prisma.organization.findFirst({
       where: {
