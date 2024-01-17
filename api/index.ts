@@ -160,6 +160,80 @@ app.get(
   })
 );
 
+//////////////////////////////////
+
+app.get(
+  "/test2/drizzle",
+  handler(async (_req, res) => {
+    await db.query.organization.findFirst({
+      where: eq(schema.organization.id, "WF66qJINtSY9"),
+    });
+
+    const start = Date.now();
+
+    for (let i = 0; i < 10; i++) {
+      await db.query.organization.findFirst({
+        where: eq(schema.organization.id, "WF66qJINtSY9"),
+      });
+    }
+
+    const time = (Date.now() - start) / 10;
+
+    res.json({ time });
+  })
+);
+
+const prepared2 = db.query.organization
+  .findFirst({
+    where: (organization, { eq }) => eq(organization.id, s.placeholder("id")),
+  })
+  .prepare("test");
+
+app.get(
+  "/test2/drizzlep",
+  handler(async (_req, res) => {
+    await prepared2.execute({ id: "WF66qJINtSY9" });
+
+    const start = Date.now();
+
+    for (let i = 0; i < 10; i++) {
+      await prepared2.execute({ id: "WF66qJINtSY9" });
+    }
+
+    const time = (Date.now() - start) / 10;
+
+    res.json({ time });
+  })
+);
+
+app.get(
+  "/tes2/prisma",
+  handler(async (req, res) => {
+    // warmup
+    await prisma.organization.findFirst({
+      where: {
+        id: "WF66qJINtSY9",
+      },
+    });
+
+    const start = Date.now();
+
+    for (let i = 0; i < 10; i++) {
+      await prisma.organization.findFirst({
+        where: {
+          id: "WF66qJINtSY9",
+        },
+      });
+    }
+
+    const time = (Date.now() - start) / 10;
+
+    res.json({
+      time,
+    });
+  })
+);
+
 // ADMIN ROUTES
 app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
