@@ -39,6 +39,129 @@ app.get(
   })
 );
 
+// START TESTS
+
+app.get(
+  "/test/drizzle",
+  handler(async (_req, res) => {
+    await db.query.organization.findFirst({
+      where: eq(schema.organization.id, "WF66qJINtSY9"),
+      with: {
+        adminToOrganization: {
+          with: {
+            admin: {
+              with: {
+                password: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const start = Date.now();
+
+    for (let i = 0; i < 10; i++) {
+      await db.query.organization.findFirst({
+        where: eq(schema.organization.id, "WF66qJINtSY9"),
+        with: {
+          adminToOrganization: {
+            with: {
+              admin: {
+                with: {
+                  password: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    const time = (Date.now() - start) / 10;
+
+    res.json({ time });
+  })
+);
+
+const prepared = db.query.organization
+  .findFirst({
+    where: (organization, { eq }) => eq(organization.id, s.placeholder("id")),
+    with: {
+      adminToOrganization: {
+        with: {
+          admin: {
+            with: {
+              password: true,
+            },
+          },
+        },
+      },
+    },
+  })
+  .prepare("test");
+
+app.get(
+  "/test/drizzlep",
+  handler(async (_req, res) => {
+    await prepared.execute({ id: "WF66qJINtSY9" });
+
+    const start = Date.now();
+
+    for (let i = 0; i < 10; i++) {
+      await prepared.execute({ id: "WF66qJINtSY9" });
+    }
+
+    const time = (Date.now() - start) / 10;
+
+    res.json({ time });
+  })
+);
+
+app.get(
+  "/test/prisma",
+  handler(async (req, res) => {
+    // warmup
+    await prisma.organization.findFirst({
+      where: {
+        id: "WF66qJINtSY9",
+      },
+      include: {
+        admins: {
+          include: {
+            password: true,
+          },
+        },
+      },
+    });
+
+    const start = Date.now();
+
+    for (let i = 0; i < 10; i++) {
+      await prisma.organization.findFirst({
+        where: {
+          id: "WF66qJINtSY9",
+        },
+        include: {
+          admins: {
+            include: {
+              password: true,
+            },
+          },
+        },
+      });
+    }
+
+    const time = (Date.now() - start) / 10;
+
+    res.json({
+      time,
+    });
+  })
+);
+
+// END TESTS
+
 // ADMIN ROUTES
 app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
