@@ -47,3 +47,21 @@ export const BaseUserSelect: Prisma.UserSelect = {
 export const UserSelect: Prisma.UserSelect = {
   ...BaseUserSelect,
 };
+
+export const BaseListingSelect: Prisma.ListingSelect = {
+  id: true,
+  published: true,
+  job_title: true,
+  location: true,
+  employment_type: true,
+  salary_range: true,
+  job_description: true,
+  job_requirements: true,
+  organization_id: true,
+  organization: true,
+  created_at: true,
+  updated_at: true,
+};
+export const ListingSelect: Prisma.ListingSelect = {
+  ...BaseListingSelect,
+};

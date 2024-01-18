@@ -11,14 +11,13 @@ datasource db {
 }
 
 model Organization {
-  id         String   @id
+  id         String    @id
   title      String
   admins     Admin[]
   users      User[]
-  // image_id   String?
-  // image      Image?   @relation(fields: [image_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  listing    Listing[]
 
   @@map("organization")
 }
@@ -63,15 +62,22 @@ model Password {
   @@map("password")
 }
 
-// model Image {
-//   id              String   @id
-//   organization_id String
-//   url             String
-//   created_at      DateTime @default(now())
-//   updated_at      DateTime @updatedAt
 
-//   organization Organization[]
+model Listing {
+  id               String        @id
+  published        Boolean       @default(false)
+  job_title        String
+  location         String?
+  employment_type  String?
+  salary_range     String?
+  job_description  String?
+  job_requirements String?
+  organization_id  String?
+  organization     Organization? @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
 
-//   @@unique([organization_id, id])
-//   @@map("image")
-// }
+  @@index([organization_id])
+  @@map("listing")
+}
+
