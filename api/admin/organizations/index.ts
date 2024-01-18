@@ -9,7 +9,7 @@ import { OrganizationSelect } from "../../../src/select/admin";
 
 const router = express.Router();
 
-router.use("*", AuthMiddleware);
+router.use(AuthMiddleware);
 
 router.get(
   "/:organizationId",

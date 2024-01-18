@@ -7,17 +7,20 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("PROXY_URL")
+  url      = env("DANGEROUS_DATABASE_URL")
 }
 
 model Organization {
   id        String    @id
   title     String
-  admins    Admin[]
-  users     User[]
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
+  users     User[]
+  admins    Admin[]
   listing   Listing[]
+  images    Image[]   @relation("OrganizationImages")
+  logoId    String?   @unique @map("logo_id")
+  logo      Image?    @relation(fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("organization")
 }
@@ -29,10 +32,10 @@ model Admin {
   email          String         @unique
   emailConfirmed Boolean        @default(false) @map("email_confirmed")
   selfCreated    Boolean        @default(false) @map("self_created")
-  password       Password?
-  organizations  Organization[]
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
+  password       Password?
+  organizations  Organization[]
 
   @@map("admin")
 }
@@ -43,10 +46,10 @@ model User {
   lastName       String?        @map("last_name")
   email          String         @unique
   emailConfirmed Boolean        @default(false) @map("email_confirmed")
-  password       Password?
-  organizations  Organization[]
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
+  password       Password?
+  organizations  Organization[]
 
   @@map("user")
 }
@@ -64,6 +67,8 @@ model Password {
 
 model Listing {
   id              String        @id
+  organizationId  String?       @map("organization_id")
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   published       Boolean       @default(false)
   jobTitle        String        @map("job_title")
   location        String?
@@ -71,11 +76,22 @@ model Listing {
   salaryRange     String?       @map("salary_range")
   jobDescription  String?       @map("job_description")
   jobRequirements String?       @map("job_requirements")
-  organizationId  String?       @map("organization_id")
-  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
   @@index([organizationId])
   @@map("listing")
+}
+
+model Image {
+  id               String        @id
+  organizationId   String        @map("organization_id")
+  organization     Organization  @relation("OrganizationImages", fields: [organizationId], references: [id])
+  url              String
+  organizationLogo Organization?
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@unique([organizationId, id])
+  @@index([organizationId])
 }
