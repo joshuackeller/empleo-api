@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("PROXY_URL")
+  url      = env("DANGEROUS_DATABASE_URL")
 }
 
 model Organization {
