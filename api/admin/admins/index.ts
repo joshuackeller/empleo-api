@@ -1,5 +1,5 @@
 import prisma from "../../../src/utilities/prisma";
-import express from "express";
+import express, { NextFunction, Response } from "express";
 import handler from "../../../src/middleware/handler";
 import { EmpleoRequest } from "../../../src/utilities/interfaces";
 import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
@@ -10,6 +10,7 @@ import { AdminSelect } from "../../../src/select/admin";
 import CreateRedisAdminOrgKey from "../../../src/utilities/CreateRedisAdminOrgKey";
 
 import { Redis } from "@upstash/redis";
+import { ClientError } from "../../../src/utilities/errors";
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -18,8 +19,8 @@ const redis = new Redis({
 
 const router = express.Router();
 
-router.use("*", AuthMiddleware);
-router.use("*", OrgMiddleware);
+router.use(AuthMiddleware);
+router.use(OrgMiddleware);
 
 router.get(
   "/",
