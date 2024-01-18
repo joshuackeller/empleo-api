@@ -15,7 +15,7 @@ router.get(
   handler(async (req: EmpleoRequest, res) => {
     const admin = await prisma.admin.findUniqueOrThrow({
       where: {
-        id: req.admin_id,
+        id: req.adminId,
       },
       select: SelfSelect,
     });
@@ -29,14 +29,14 @@ router.put(
   handler(async (req: EmpleoRequest, res) => {
     const data = z
       .object({
-        first_name: z.string(),
-        last_name: z.string().optional(),
+        firstName: z.string(),
+        lastName: z.string().optional(),
       })
       .parse(req.body);
 
     const admin = await prisma.admin.update({
       where: {
-        id: req.admin_id,
+        id: req.adminId,
       },
       data,
       select: SelfSelect,

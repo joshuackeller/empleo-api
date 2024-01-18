@@ -12,20 +12,20 @@ const router = express.Router();
 router.use("*", AuthMiddleware);
 
 router.get(
-  "/:organization_id",
+  "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { organization_id } = z
+    const { organizationId } = z
       .object({
-        organization_id: z.string(),
+        organizationId: z.string(),
       })
       .parse(req.params);
 
     const organization = await prisma.organization.findUniqueOrThrow({
       where: {
-        id: organization_id,
+        id: organizationId,
         admins: {
           some: {
-            id: req.admin_id,
+            id: req.adminId,
           },
         },
       },
@@ -43,7 +43,7 @@ router.get(
       where: {
         admins: {
           some: {
-            id: req.admin_id,
+            id: req.adminId,
           },
         },
       },
@@ -69,7 +69,7 @@ router.post(
         title,
         admins: {
           connect: {
-            id: req.admin_id,
+            id: req.adminId,
           },
         },
       },
@@ -80,7 +80,7 @@ router.post(
 );
 
 router.put(
-  "/:organization_id",
+  "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
     const { title } = z
       .object({
@@ -88,18 +88,18 @@ router.put(
       })
       .parse(req.body);
 
-    const { organization_id } = z
+    const { organizationId } = z
       .object({
-        organization_id: z.string(),
+        organizationId: z.string(),
       })
       .parse(req.params);
 
     const organization = await prisma.organization.update({
       where: {
-        id: organization_id,
+        id: organizationId,
         admins: {
           some: {
-            id: req.admin_id,
+            id: req.adminId,
           },
         },
       },

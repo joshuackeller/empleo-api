@@ -11,73 +11,71 @@ datasource db {
 }
 
 model Organization {
-  id         String    @id
-  title      String
-  admins     Admin[]
-  users      User[]
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  listing    Listing[]
+  id        String    @id
+  title     String
+  admins    Admin[]
+  users     User[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  listing   Listing[]
 
   @@map("organization")
 }
 
 model Admin {
-  id              String         @id
-  first_name      String
-  last_name       String?
-  email           String         @unique
-  email_confirmed Boolean        @default(false)
-  self_created    Boolean        @default(false)
-  password        Password?
-  organizations   Organization[]
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @updatedAt
+  id             String         @id
+  firstName      String         @map("first_name")
+  lastName       String?        @map("last_name")
+  email          String         @unique
+  emailConfirmed Boolean        @default(false) @map("email_confirmed")
+  selfCreated    Boolean        @default(false) @map("self_created")
+  password       Password?
+  organizations  Organization[]
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
 
   @@map("admin")
 }
 
 model User {
-  id              String         @id
-  first_name      String
-  last_name       String?
-  email           String         @unique
-  email_confirmed Boolean        @default(false)
-  password        Password?
-  organizations   Organization[]
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @updatedAt
+  id             String         @id
+  firstName      String         @map("first_name")
+  lastName       String?        @map("last_name")
+  email          String         @unique
+  emailConfirmed Boolean        @default(false) @map("email_confirmed")
+  password       Password?
+  organizations  Organization[]
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
 
   @@map("user")
 }
 
 model Password {
-  id       String  @id
-  admin_id String? @unique
-  admin    Admin?  @relation(fields: [admin_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  user_id  String? @unique
-  user     User?   @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  hash     String
+  id      String  @id
+  adminId String? @unique @map("admin_id")
+  admin   Admin?  @relation(fields: [adminId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userId  String? @unique @map("user_id")
+  user    User?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  hash    String
 
   @@map("password")
 }
 
-
 model Listing {
-  id               String        @id
-  published        Boolean       @default(false)
-  job_title        String
-  location         String?
-  employment_type  String?
-  salary_range     String?
-  job_description  String?
-  job_requirements String?
-  organization_id  String?
-  organization     Organization? @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  created_at       DateTime      @default(now())
-  updated_at       DateTime      @updatedAt
+  id              String        @id
+  published       Boolean       @default(false)
+  jobTitle        String        @map("job_title")
+  location        String?
+  employmentType  String?       @map("employment_type")
+  salaryRange     String?       @map("salary_range")
+  jobDescription  String?       @map("job_description")
+  jobRequirements String?       @map("job_requirements")
+  organizationId  String?       @map("organization_id")
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
 
-  @@index([organization_id])
+  @@index([organizationId])
   @@map("listing")
 }
-

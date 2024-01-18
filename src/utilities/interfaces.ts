@@ -1,10 +1,10 @@
 import { Request } from "express";
 
 export type AdminJWTObject = {
-  admin_id: string;
+  adminId: string;
 };
 
 export interface EmpleoRequest extends Request {
-  admin_id?: string;
-  organization_id?: string;
+  adminId?: string;
+  organizationId?: string;
 }
