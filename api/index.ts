@@ -9,6 +9,7 @@ import admin_auth from "./admin/auth";
 import admin_self from "./admin/self";
 import admin_organizations from "./admin/organizations";
 import admin_admins from "./admin/admins";
+import admin_listings from "./admin/listings";
 
 import { Redis } from "@upstash/redis";
 
@@ -44,6 +45,7 @@ app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
 app.use("/admin/organizations", admin_organizations);
 app.use("/admin/admins", admin_admins);
+app.use("/admin/listings", admin_listings);
 
 app.use(ErrorHandler);
 
