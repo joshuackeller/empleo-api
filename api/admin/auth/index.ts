@@ -17,16 +17,16 @@ const router = express.Router();
 router.post(
   "/create_account",
   handler(async (req, res) => {
-    const { email, first_name, last_name, password } = z
+    const { email, firstName, lastName, password } = z
       .object({
         email: z.string().email(),
-        first_name: z.string(),
-        last_name: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
         password: z.string().min(8, "Password must be 8 characters or more "),
       })
       .parse(req.body);
     let admin = await prisma.admin.findUnique({
-      where: { email, self_created: true },
+      where: { email, selfCreated: true },
     });
     if (!!admin) {
       throw new ClientError("Email already in use");
@@ -38,10 +38,10 @@ router.post(
           email,
         },
         update: {
-          first_name,
-          last_name,
-          email_confirmed: false,
-          self_created: true,
+          firstName,
+          lastName,
+          emailConfirmed: false,
+          selfCreated: true,
           password: {
             create: {
               id: nano_id(),
@@ -52,10 +52,10 @@ router.post(
         create: {
           id: nano_id(),
           email,
-          first_name,
-          last_name,
-          email_confirmed: false,
-          self_created: true,
+          firstName,
+          lastName,
+          emailConfirmed: false,
+          selfCreated: true,
           password: {
             create: {
               id: nano_id(),
@@ -66,7 +66,7 @@ router.post(
       });
 
       const token = jwt.sign(
-        { admin_id: admin.id },
+        { adminId: admin.id },
         SecretToken.confirm_account
       );
       try {
@@ -103,17 +103,14 @@ router.get(
       .parse(req.query);
 
     try {
-      const { admin_id } = jwt.verify(
-        token,
-        SecretToken.confirm_account
-      ) as any;
+      const { adminId } = jwt.verify(token, SecretToken.confirm_account) as any;
 
       await prisma.admin.update({
         where: {
-          id: admin_id,
+          id: adminId,
         },
         data: {
-          email_confirmed: true,
+          emailConfirmed: true,
         },
       });
 
@@ -139,15 +136,15 @@ router.post(
     const admin = await prisma.admin.findUnique({
       where: {
         email,
-        self_created: true,
+        selfCreated: true,
       },
     });
     if (!!admin) {
-      if (admin.email_confirmed === true) {
+      if (admin.emailConfirmed === true) {
         throw new ClientError("Email already confirmed");
       }
       const token = jwt.sign(
-        { admin_id: admin.id },
+        { adminId: admin.id },
         SecretToken.confirm_account
       );
       try {
@@ -192,7 +189,7 @@ router.post(
       admin = await prisma.admin.findUniqueOrThrow({
         where: {
           email,
-          self_created: true,
+          selfCreated: true,
         },
         include: {
           password: true,
@@ -201,7 +198,7 @@ router.post(
     } catch {
       throw new ClientError("Could not find an account with this email");
     }
-    if (!admin.email_confirmed) {
+    if (!admin.emailConfirmed) {
       throw new ClientError("Please confirm email before signing in");
     }
 
@@ -213,7 +210,7 @@ router.post(
     const valid = await bcrypt.compare(password, admin.password.hash);
 
     if (valid === true) {
-      const token = jwt.sign({ admin_id: admin.id }, SecretToken.auth);
+      const token = jwt.sign({ adminId: admin.id }, SecretToken.auth);
       res.json({ token });
     } else {
       throw new ClientError("Incorrect email or password", 403);
@@ -235,7 +232,7 @@ router.post(
       admin = await prisma.admin.findUniqueOrThrow({
         where: {
           email,
-          self_created: true,
+          selfCreated: true,
         },
       });
     } catch {
@@ -243,7 +240,7 @@ router.post(
     }
 
     const token = jwt.sign(
-      { admin_id: admin.id, email },
+      { adminId: admin.id, email },
       SecretToken.reset_password,
       {
         expiresIn: "1hr",
@@ -282,16 +279,16 @@ router.post(
       .parse(req.body);
 
     try {
-      const { admin_id } = jwt.verify(token, SecretToken.reset_password) as any;
+      const { adminId } = jwt.verify(token, SecretToken.reset_password) as any;
 
       const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
       let admin = await prisma.admin.update({
         where: {
-          id: admin_id,
+          id: adminId,
         },
         data: {
-          email_confirmed: true,
+          emailConfirmed: true,
           password: {
             update: {
               hash,

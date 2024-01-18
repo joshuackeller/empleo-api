@@ -16,10 +16,10 @@ export default async function OrgMiddleware(
   _res: Response,
   next: NextFunction
 ) {
-  if (!req.admin_id) {
+  if (!req.adminId) {
     throw new ClientError("No admin id", 403);
   }
-  req.organization_id = undefined;
+  req.organizationId = undefined;
   if (
     !req.headers.organization ||
     typeof req.headers.organization !== "string"
@@ -28,7 +28,7 @@ export default async function OrgMiddleware(
   }
 
   const admin_org_key = CreateRedisAdminOrgKey(
-    req.admin_id,
+    req.adminId,
     req.headers.organization as string
   );
 
@@ -40,7 +40,7 @@ export default async function OrgMiddleware(
         id: req.headers.organization as string,
         admins: {
           some: {
-            id: req.admin_id,
+            id: req.adminId,
           },
         },
       },
@@ -51,7 +51,7 @@ export default async function OrgMiddleware(
     });
   }
 
-  req.organization_id = req.headers.organization as string | undefined;
+  req.organizationId = req.headers.organization as string | undefined;
 
   next();
 }

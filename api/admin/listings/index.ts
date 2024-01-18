@@ -26,7 +26,7 @@ router.get(
   handler(async (req: EmpleoRequest, res) => {
     const listings = await prisma.listing.findMany({
       where: {
-        organization_id: req.organization_id,
+        organizationId: req.organizationId,
       },
       select: ListingSelect,
     });
