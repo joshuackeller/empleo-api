@@ -62,6 +62,7 @@ model Password {
   @@map("password")
 }
 
+
 model Listing {
   id               String        @id
   published        Boolean       @default(false)
@@ -79,3 +80,4 @@ model Listing {
   @@index([organization_id])
   @@map("listing")
 }
+

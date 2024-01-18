@@ -11,13 +11,6 @@ import admin_organizations from "./admin/organizations";
 import admin_admins from "./admin/admins";
 import admin_listings from "./admin/listings";
 
-import { Redis } from "@upstash/redis";
-
-const redis = new Redis({
-  url: "https://us1-endless-lemur-38129.upstash.io",
-  token: process.env.UPSTASH_TOKEN || "",
-});
-
 const app = express();
 
 app.use(
