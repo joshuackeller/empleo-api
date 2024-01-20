@@ -18,8 +18,8 @@ const redis = new Redis({
 
 const router = express.Router();
 
-router.use("*", AuthMiddleware);
-router.use("*", OrgMiddleware);
+router.use("/*", AuthMiddleware);
+router.use("/*", OrgMiddleware);
 
 router.get(
   "/",

@@ -9,6 +9,7 @@ export default function AuthMiddleware(
   _res: Response,
   next: NextFunction
 ) {
+  console.log("running");
   req.admin_id = undefined;
 
   if (!req.headers.authorization) {
@@ -21,6 +22,8 @@ export default function AuthMiddleware(
   ) as AdminJWTObject;
 
   req.admin_id = admin_id;
+
+  console.log("finished");
 
   next();
 }
