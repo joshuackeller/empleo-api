@@ -39,7 +39,7 @@
 //         id: userId,
 //       },
 //       data: {
-//         email_confirmed: true,
+//         emailConfirmed: true,
 //       },
 //     });
 
@@ -94,11 +94,11 @@
 // });
 
 // api.post("/create_account", async (c) => {
-//   const { email, first_name, last_name, password } = await z
+//   const { email, firstName, lastName, password } = await z
 //     .object({
 //       email: z.string().email(),
-//       first_name: z.string(),
-//       last_name: z.string(),
+//       firstName: z.string(),
+//       lastName: z.string(),
 //       password: z.string().min(8, "Password must be 8 characters or more "),
 //     })
 //     .parseAsync(await c.req.parseBody());
@@ -116,9 +116,9 @@
 //       data: {
 //         id: nano_id(),
 //         email,
-//         first_name,
-//         last_name,
-//         email_confirmed: false,
+//         firstName,
+//         lastName,
+//         emailConfirmed: false,
 //         password: {
 //           create: {
 //             id: nano_id(),
@@ -172,7 +172,7 @@
 //   } catch {
 //     throw new ClientError("Could not find an account with this email");
 //   }
-//   if (!user.email_confirmed) {
+//   if (!user.emailConfirmed) {
 //     throw new ClientError("Please confirm email before signing in");
 //   }
 
@@ -252,7 +252,7 @@
 //         id: userId,
 //       },
 //       data: {
-//         email_confirmed: true,
+//         emailConfirmed: true,
 //         password: {
 //           update: {
 //             hash,

@@ -1,5 +1,5 @@
 import prisma from "../../../src/utilities/prisma";
-import express from "express";
+import express, { NextFunction, Response } from "express";
 import handler from "../../../src/middleware/handler";
 import { EmpleoRequest } from "../../../src/utilities/interfaces";
 import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
@@ -10,6 +10,7 @@ import { AdminSelect } from "../../../src/select/admin";
 import CreateRedisAdminOrgKey from "../../../src/utilities/CreateRedisAdminOrgKey";
 
 import { Redis } from "@upstash/redis";
+import { ClientError } from "../../../src/utilities/errors";
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -18,8 +19,8 @@ const redis = new Redis({
 
 const router = express.Router();
 
-router.use("/*", AuthMiddleware);
-router.use("/*", OrgMiddleware);
+router.use(AuthMiddleware);
+router.use(OrgMiddleware);
 
 router.get(
   "/",
@@ -28,7 +29,7 @@ router.get(
       where: {
         organizations: {
           some: {
-            id: req.organization_id,
+            id: req.organizationId,
           },
         },
       },
@@ -39,20 +40,20 @@ router.get(
 );
 
 router.get(
-  "/:admin_id",
+  "/:adminId",
   handler(async (req: EmpleoRequest, res) => {
-    const { admin_id } = z
+    const { adminId } = z
       .object({
-        admin_id: z.string(),
+        adminId: z.string(),
       })
       .parse(req.params);
 
     const admin = await prisma.admin.findUniqueOrThrow({
       where: {
-        id: admin_id,
+        id: adminId,
         organizations: {
           some: {
-            id: req.organization_id,
+            id: req.organizationId,
           },
         },
       },
@@ -78,19 +79,19 @@ router.post(
       update: {
         organizations: {
           connect: {
-            id: req.organization_id,
+            id: req.organizationId,
           },
         },
       },
       create: {
         id: nano_id(),
-        first_name: "",
+        firstName: "",
         email,
-        self_created: false,
-        email_confirmed: false,
+        selfCreated: false,
+        emailConfirmed: false,
         organizations: {
           connect: {
-            id: req.organization_id,
+            id: req.organizationId,
           },
         },
       },
@@ -102,27 +103,27 @@ router.post(
 );
 
 router.delete(
-  "/:admin_id",
+  "/:adminId",
   handler(async (req: EmpleoRequest, res) => {
-    const { admin_id } = z
+    const { adminId } = z
       .object({
-        admin_id: z.string(),
+        adminId: z.string(),
       })
       .parse(req.params);
 
     const admin = await prisma.admin.update({
       where: {
-        id: admin_id,
+        id: adminId,
         organizations: {
           some: {
-            id: req.organization_id,
+            id: req.organizationId,
           },
         },
       },
       data: {
         organizations: {
           disconnect: {
-            id: req.organization_id,
+            id: req.organizationId,
           },
         },
       },
@@ -131,7 +132,7 @@ router.delete(
 
     // Expire current redis admin org key
     const admin_org_key = CreateRedisAdminOrgKey(
-      admin_id,
+      adminId,
       req.headers.organization as string
     );
     redis.expire(admin_org_key, 0);

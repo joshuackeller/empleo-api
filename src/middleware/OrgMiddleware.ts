@@ -16,42 +16,50 @@ export default async function OrgMiddleware(
   _res: Response,
   next: NextFunction
 ) {
-  if (!req.admin_id) {
-    throw new ClientError("No admin id", 403);
-  }
-  req.organization_id = undefined;
-  if (
-    !req.headers.organization ||
-    typeof req.headers.organization !== "string"
-  ) {
-    throw new ClientError("No organization header", 403);
-  }
+  try {
+    if (!req.adminId) {
+      throw new ClientError("No authorization header", 403);
+    }
+    req.organizationId = undefined;
+    if (
+      !req.headers.organization ||
+      typeof req.headers.organization !== "string"
+    ) {
+      throw new ClientError("No organization header", 403);
+    }
 
-  const admin_org_key = CreateRedisAdminOrgKey(
-    req.admin_id,
-    req.headers.organization as string
-  );
+    const adminOrgKey = CreateRedisAdminOrgKey(
+      req.adminId,
+      req.headers.organization as string
+    );
 
-  const data = await redis.get(admin_org_key);
+    const data = await redis.get(adminOrgKey);
 
-  if (!data) {
-    await prisma.organization.findUniqueOrThrow({
-      where: {
-        id: req.headers.organization as string,
-        admins: {
-          some: {
-            id: req.admin_id,
+    if (!data) {
+      try {
+        await prisma.organization.findUniqueOrThrow({
+          where: {
+            id: req.headers.organization as string,
+            admins: {
+              some: {
+                id: req.adminId,
+              },
+            },
           },
-        },
-      },
-    });
-    const one_hour_from_now = Math.floor(Date.now() / 1000) + 60 * 60;
-    await redis.set(admin_org_key, true, {
-      exat: one_hour_from_now,
-    });
+        });
+        const oneHourFromNow = Math.floor(Date.now() / 1000) + 60 * 60;
+        await redis.set(adminOrgKey, true, {
+          exat: oneHourFromNow,
+        });
+      } catch {
+        throw new ClientError("Invalid organization");
+      }
+    }
+
+    req.organizationId = req.headers.organization as string | undefined;
+
+    next();
+  } catch (error) {
+    next(error);
   }
-
-  req.organization_id = req.headers.organization as string | undefined;
-
-  next();
 }

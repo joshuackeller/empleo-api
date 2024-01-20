@@ -9,21 +9,22 @@ export default function AuthMiddleware(
   _res: Response,
   next: NextFunction
 ) {
-  console.log("running");
-  req.admin_id = undefined;
+  try {
+    req.adminId = undefined;
 
-  if (!req.headers.authorization) {
-    throw new ClientError("No authorization header", 403);
+    if (!req.headers.authorization) {
+      throw new ClientError("No authorization header", 403);
+    }
+
+    const { adminId } = jwt.verify(
+      req.headers.authorization,
+      SecretToken.auth
+    ) as AdminJWTObject;
+
+    req.adminId = adminId;
+
+    next();
+  } catch (error) {
+    next(error);
   }
-
-  const { admin_id } = jwt.verify(
-    req.headers.authorization,
-    SecretToken.auth
-  ) as AdminJWTObject;
-
-  req.admin_id = admin_id;
-
-  console.log("finished");
-
-  next();
 }
