@@ -28,6 +28,7 @@ export const AdminSelect: Prisma.AdminSelect = {
 export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   id: true,
   title: true,
+  slug: true,
   createdAt: true,
   updatedAt: true,
 };
