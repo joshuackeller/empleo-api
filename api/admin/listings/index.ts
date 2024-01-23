@@ -34,4 +34,31 @@ router.get(
   })
 );
 
+router.post(
+  "/",
+  handler(async (req: EmpleoRequest, res) => {
+    const body = z
+      .object({
+        jobTitle: z.string(),
+        jobDescription: z.string().optional(),
+        jobRequirements: z.string().optional(),
+        employmentType: z.string().optional(),
+        location: z.string().optional(),
+        salaryRange: z.string().optional(),
+        published: z.boolean(),
+      })
+      .parse(req.body);
+
+    const listing = await prisma.listing.create({
+      data: {
+        id: nano_id(),
+        organization: { connect: { id: req.organizationId } },
+        ...body,
+      },
+      select: ListingSelect,
+    });
+
+    res.json(listing);
+  })
+);
 export default router;
