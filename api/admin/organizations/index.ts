@@ -57,9 +57,13 @@ router.get(
 router.post(
   "/",
   handler(async (req: EmpleoRequest, res) => {
-    const { title } = z
+    const { title, slug } = z
       .object({
         title: z.string(),
+        slug: z.string().refine((value) => /^[a-z0-9-]+$/.test(value), {
+          message:
+            "Slug can only contain lowercase letters, numbers, and dashes",
+        }),
       })
       .parse(req.body);
 
@@ -67,6 +71,7 @@ router.post(
       data: {
         id: nano_id(),
         title,
+        slug,
         admins: {
           connect: {
             id: req.adminId,
@@ -82,12 +87,17 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { title
-    // dataUrl
-    } = z
+    const { title, slug } = z // destructure dataUrl here as well
       .object({
-        title: z.string(),
-        // dataUrl: z.string().optional()
+        title: z.string().optional(),
+        // dataUrl
+        slug: z
+          .string()
+          .refine((value) => /^[a-z0-9-]+$/.test(value), {
+            message:
+              "Slug can only contain lowercase letters, numbers, and dashes",
+          })
+          .optional(),
       })
       .parse(req.body);
 
@@ -121,6 +131,7 @@ router.put(
         //     // url: dataUrl
         //   }
         // } : undefined
+        slug,
       },
     });
 

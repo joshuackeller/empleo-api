@@ -6,13 +6,15 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("PROXY_URL")
+  provider  = "postgresql"
+  url       = env("PROXY_URL")
+  directUrl = env("DANGEROUS_DATABASE_URL")
 }
 
 model Organization {
   id        String    @id
   title     String
+  slug      String    @unique
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   users     User[]
