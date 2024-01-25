@@ -82,11 +82,21 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { title } = z
+    const { title
+    // dataUrl
+    } = z
       .object({
         title: z.string(),
+        // dataUrl: z.string().optional()
       })
       .parse(req.body);
+
+      // let imageId
+      // if(dataUrl) {
+        // imageId = nano_id()
+      //   // Add logic for uploading to S3
+      // S3.send(new PutObjectCommand({}))
+      // }
 
     const { organizationId } = z
       .object({
@@ -105,6 +115,12 @@ router.put(
       },
       data: {
         title,
+        // logo: imageId ? {
+        //   create: {
+        //     // id: imageId,
+        //     // url: dataUrl
+        //   }
+        // } : undefined
       },
     });
 
