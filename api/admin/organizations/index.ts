@@ -9,6 +9,10 @@ import { OrganizationSelect } from "../../../src/select/admin";
 import { OrganizationSelect as ClientOrganizationSelect } from "../../../src/select/client";
 import { Redis } from "@upstash/redis";
 import RedisKeys from "../../../src/utilities/RedisKeys";
+import {
+  AddDomainToProject,
+  RemoveDomainFromProject,
+} from "../../../src/utilities/domains";
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -75,11 +79,13 @@ router.post(
       })
       .parse(req.body);
 
+    const domain = await AddDomainToProject(slug);
     const organization = await prisma.organization.create({
       data: {
         id: nano_id(),
         title,
         slug,
+        dnsRecordId: domain.dnsRecordId,
         admins: {
           connect: {
             id: req.adminId,
@@ -129,17 +135,26 @@ router.put(
       })
       .parse(req.params);
 
-    const { slug: previousSlug } = await prisma.organization.findUniqueOrThrow({
-      where: {
-        id: organizationId,
-        admins: {
-          some: {
-            id: req.adminId,
+    const { slug: previousSlug, dnsRecordId: previousDnsRecordId } =
+      await prisma.organization.findUniqueOrThrow({
+        where: {
+          id: organizationId,
+          admins: {
+            some: {
+              id: req.adminId,
+            },
           },
         },
-      },
-      select: { slug: true },
-    });
+        select: { slug: true, dnsRecordId: true },
+      });
+
+    let domain;
+    if (!!slug && previousSlug !== slug) {
+      if (!!previousDnsRecordId) {
+        await RemoveDomainFromProject(previousSlug, previousDnsRecordId);
+      }
+      domain = await AddDomainToProject(slug);
+    }
 
     const organization = await prisma.organization.update({
       where: {
@@ -153,6 +168,7 @@ router.put(
       data: {
         title,
         slug,
+        dnsRecordId: domain ? domain.dnsRecordId : undefined,
       },
       select: OrganizationSelect,
     });

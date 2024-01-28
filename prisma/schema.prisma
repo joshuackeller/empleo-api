@@ -2,99 +2,100 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("PROXY_URL")
-  directUrl = env("DANGEROUS_DATABASE_URL")
+    provider  = "postgresql"
+    url       = env("PROXY_URL")
+    directUrl = env("DANGEROUS_DATABASE_URL")
 }
 
 model Organization {
-  id        String    @id
-  title     String
-  slug      String    @unique
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  users     User[]
-  admins    Admin[]
-  listing   Listing[]
-  images    Image[]   @relation("OrganizationImages")
-  logoId    String?   @unique @map("logo_id")
-  logo      Image?    @relation(fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    id          String    @id
+    title       String
+    slug        String    @unique
+    dnsRecordId String    @default("")
+    createdAt   DateTime  @default(now()) @map("created_at")
+    updatedAt   DateTime  @updatedAt @map("updated_at")
+    users       User[]
+    admins      Admin[]
+    listing     Listing[]
+    images      Image[]   @relation("OrganizationImages")
+    logoId      String?   @unique @map("logo_id")
+    logo        Image?    @relation(fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@map("organization")
+    @@map("organization")
 }
 
 model Admin {
-  id             String         @id
-  firstName      String         @map("first_name")
-  lastName       String?        @map("last_name")
-  email          String         @unique
-  emailConfirmed Boolean        @default(false) @map("email_confirmed")
-  selfCreated    Boolean        @default(false) @map("self_created")
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
-  password       Password?
-  organizations  Organization[]
+    id             String         @id
+    firstName      String         @map("first_name")
+    lastName       String?        @map("last_name")
+    email          String         @unique
+    emailConfirmed Boolean        @default(false) @map("email_confirmed")
+    selfCreated    Boolean        @default(false) @map("self_created")
+    createdAt      DateTime       @default(now()) @map("created_at")
+    updatedAt      DateTime       @updatedAt @map("updated_at")
+    password       Password?
+    organizations  Organization[]
 
-  @@map("admin")
+    @@map("admin")
 }
 
 model User {
-  id             String         @id
-  firstName      String         @map("first_name")
-  lastName       String?        @map("last_name")
-  email          String         @unique
-  emailConfirmed Boolean        @default(false) @map("email_confirmed")
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
-  password       Password?
-  organizations  Organization[]
+    id             String         @id
+    firstName      String         @map("first_name")
+    lastName       String?        @map("last_name")
+    email          String         @unique
+    emailConfirmed Boolean        @default(false) @map("email_confirmed")
+    createdAt      DateTime       @default(now()) @map("created_at")
+    updatedAt      DateTime       @updatedAt @map("updated_at")
+    password       Password?
+    organizations  Organization[]
 
-  @@map("user")
+    @@map("user")
 }
 
 model Password {
-  id      String  @id
-  adminId String? @unique @map("admin_id")
-  admin   Admin?  @relation(fields: [adminId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  userId  String? @unique @map("user_id")
-  user    User?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  hash    String
+    id      String  @id
+    adminId String? @unique @map("admin_id")
+    admin   Admin?  @relation(fields: [adminId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+    userId  String? @unique @map("user_id")
+    user    User?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+    hash    String
 
-  @@map("password")
+    @@map("password")
 }
 
 model Listing {
-  id              String        @id
-  organizationId  String?       @map("organization_id")
-  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  published       Boolean       @default(false)
-  jobTitle        String        @map("job_title")
-  location        String?
-  employmentType  String?       @map("employment_type")
-  salaryRange     String?       @map("salary_range")
-  jobDescription  String?       @map("job_description")
-  jobRequirements String?       @map("job_requirements")
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+    id              String        @id
+    organizationId  String?       @map("organization_id")
+    organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    published       Boolean       @default(false)
+    jobTitle        String        @map("job_title")
+    location        String?
+    employmentType  String?       @map("employment_type")
+    salaryRange     String?       @map("salary_range")
+    jobDescription  String?       @map("job_description")
+    jobRequirements String?       @map("job_requirements")
+    createdAt       DateTime      @default(now()) @map("created_at")
+    updatedAt       DateTime      @updatedAt @map("updated_at")
 
-  @@index([organizationId])
-  @@map("listing")
+    @@index([organizationId])
+    @@map("listing")
 }
 
 model Image {
-  id               String        @id
-  organizationId   String        @map("organization_id")
-  organization     Organization  @relation("OrganizationImages", fields: [organizationId], references: [id])
-  url              String
-  organizationLogo Organization?
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
+    id               String        @id
+    organizationId   String        @map("organization_id")
+    organization     Organization  @relation("OrganizationImages", fields: [organizationId], references: [id])
+    url              String
+    organizationLogo Organization?
+    createdAt        DateTime      @default(now()) @map("created_at")
+    updatedAt        DateTime      @updatedAt @map("updated_at")
 
-  @@unique([organizationId, id])
-  @@index([organizationId])
-  @@map("image")
+    @@unique([organizationId, id])
+    @@index([organizationId])
+    @@map("image")
 }
