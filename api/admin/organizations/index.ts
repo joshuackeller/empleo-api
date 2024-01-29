@@ -12,7 +12,9 @@ import RedisKeys from "../../../src/utilities/RedisKeys";
 import {
   AddDomainToProject,
   RemoveDomainFromProject,
+  UpdateProjectDomain,
 } from "../../../src/utilities/domains";
+import { ClientError } from "../../../src/utilities/errors";
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -116,16 +118,9 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { title, slug } = z
+    const { title } = z
       .object({
         title: z.string().optional(),
-        slug: z
-          .string()
-          .refine((value) => /^[a-z0-9-]+$/.test(value), {
-            message:
-              "Slug can only contain lowercase letters, numbers, and dashes",
-          })
-          .optional(),
       })
       .parse(req.body);
 
@@ -134,27 +129,6 @@ router.put(
         organizationId: z.string(),
       })
       .parse(req.params);
-
-    const { slug: previousSlug, dnsRecordId: previousDnsRecordId } =
-      await prisma.organization.findUniqueOrThrow({
-        where: {
-          id: organizationId,
-          admins: {
-            some: {
-              id: req.adminId,
-            },
-          },
-        },
-        select: { slug: true, dnsRecordId: true },
-      });
-
-    let domain;
-    if (!!slug && previousSlug !== slug) {
-      if (!!previousDnsRecordId) {
-        await RemoveDomainFromProject(previousSlug, previousDnsRecordId);
-      }
-      domain = await AddDomainToProject(slug);
-    }
 
     const organization = await prisma.organization.update({
       where: {
@@ -167,15 +141,10 @@ router.put(
       },
       data: {
         title,
-        slug,
-        dnsRecordId: domain ? domain.dnsRecordId : undefined,
       },
       select: OrganizationSelect,
     });
 
-    if (previousSlug !== organization.slug) {
-      redis.del(RedisKeys.organizationBySlug(previousSlug));
-    }
     const clientOrganization = await prisma.organization.findUniqueOrThrow({
       where: {
         id: organizationId,
@@ -193,6 +162,103 @@ router.put(
     );
 
     res.json(organization);
+  }),
+);
+
+router.put(
+  "/:organizationId/slug",
+  handler(async (req: EmpleoRequest, res) => {
+    const { slug } = z
+      .object({
+        slug: z.string().refine((value) => /^[a-z0-9-]+$/.test(value), {
+          message:
+            "Slug can only contain lowercase letters, numbers, and dashes",
+        }),
+      })
+      .parse(req.body);
+
+    const { organizationId } = z
+      .object({
+        organizationId: z.string(),
+      })
+      .parse(req.params);
+
+    const [currentOrganizationData, anyOrganizationWithSlug] =
+      await prisma.$transaction([
+        prisma.organization.findUniqueOrThrow({
+          where: {
+            id: organizationId,
+            admins: {
+              some: {
+                id: req.adminId,
+              },
+            },
+          },
+          select: {
+            dnsRecordId: true,
+            ...OrganizationSelect,
+          },
+        }),
+        prisma.organization.findFirst({
+          where: {
+            slug: slug,
+          },
+        }),
+      ]);
+
+    if (!!anyOrganizationWithSlug) {
+      throw new ClientError("Subdomain already in use");
+    }
+
+    if (currentOrganizationData.slug !== slug) {
+      let domain;
+      if (!!currentOrganizationData.dnsRecordId) {
+        await UpdateProjectDomain(
+          currentOrganizationData.slug,
+          slug,
+          currentOrganizationData.dnsRecordId,
+        );
+      } else {
+        domain = await AddDomainToProject(slug);
+      }
+      const organization = await prisma.organization.update({
+        where: {
+          id: organizationId,
+          admins: {
+            some: {
+              id: req.adminId,
+            },
+          },
+        },
+        data: {
+          slug,
+          dnsRecordId: !!domain?.dnsRecordId ? domain.dnsRecordId : undefined,
+        },
+        select: OrganizationSelect,
+      });
+
+      redis.del(RedisKeys.organizationBySlug(currentOrganizationData.slug));
+
+      const clientOrganization = await prisma.organization.findUniqueOrThrow({
+        where: {
+          id: organizationId,
+          admins: {
+            some: {
+              id: req.adminId,
+            },
+          },
+        },
+        select: ClientOrganizationSelect,
+      });
+      redis.set(
+        RedisKeys.organizationBySlug(organization.slug),
+        clientOrganization,
+      );
+      res.json(organization);
+    } else {
+      delete (currentOrganizationData as any).dnsRecordId;
+      res.json(currentOrganizationData);
+    }
   }),
 );
 
