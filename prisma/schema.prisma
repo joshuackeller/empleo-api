@@ -15,7 +15,7 @@ model Organization {
     id          String    @id
     title       String
     slug        String    @unique
-    dnsRecordId String    @default("")
+    dnsRecordId String    @unique
     createdAt   DateTime  @default(now()) @map("created_at")
     updatedAt   DateTime  @updatedAt @map("updated_at")
     users       User[]
