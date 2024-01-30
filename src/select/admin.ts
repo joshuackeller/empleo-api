@@ -57,8 +57,6 @@ export const BaseListingSelect: Prisma.ListingSelect = {
   salaryRange: true,
   jobDescription: true,
   jobRequirements: true,
-  organizationId: true,
-  organization: true,
   createdAt: true,
   updatedAt: true,
 };
