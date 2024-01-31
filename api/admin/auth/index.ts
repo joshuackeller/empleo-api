@@ -177,6 +177,7 @@ router.post(
 router.post(
   "/sign_in",
   handler(async (req, res) => {
+    console.log("MADE IT HERE")
     const { email, password } = z
       .object({
         email: z.string(),

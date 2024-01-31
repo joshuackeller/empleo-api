@@ -29,6 +29,12 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   id: true,
   title: true,
   slug: true,
+  logo: {
+    select: {
+      id: true,
+      url: true
+    }
+  },
   createdAt: true,
   updatedAt: true,
 };

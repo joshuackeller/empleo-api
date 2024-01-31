@@ -9,21 +9,20 @@ import { OrganizationSelect } from "../../../src/select/admin";
 import { OrganizationSelect as ClientOrganizationSelect } from "../../../src/select/client";
 import { Redis } from "@upstash/redis";
 import RedisKeys from "../../../src/utilities/RedisKeys";
-import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 import {
   AddDomainToProject,
-  RemoveDomainFromProject,
   UpdateProjectDomain,
 } from "../../../src/utilities/domains";
 import { ClientError } from "../../../src/utilities/errors";
+import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 
-// Load environment variables from .env file
-require('dotenv').config();
-
-// Access environment variables
-const s3AccessKey = process.env.S3_ACCESS_KEY;
-const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
-const s3BucketName = process.env.S3_BUCKET_NAME;
+const s3 = new S3({ 
+region: 'us-east-1',
+credentials: {
+  accessKeyId: process.env.S3_ACCESS_KEY!,
+  secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!
+}
+ });
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -131,13 +130,6 @@ router.put(
       .object({
         title: z.string().optional(),
         dataUrl: z.string().optional(), // Include dataUrl in the schema
-        // slug: z
-        //   .string()
-        //   .refine((value) => /^[a-z0-9-]+$/.test(value), {
-        //     message:
-        //       "Slug can only contain lowercase letters, numbers, and dashes",
-        //   })
-        //   .optional(),
       })
       .parse(req.body);
 
@@ -147,37 +139,27 @@ router.put(
       })
       .parse(req.params);
 
-    // Extract Mime and Buffer from dataUrl
-    const mime = dataUrl?.split(":")[1].split(";")[0] || null;
-    const buffer = dataUrl?.split(",")[1] || null;
-
-    // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
-    const imageKey = `${organizationId}/logos/${nano_id()}`;
-
-
-    // // // Upload the image to S3
-    // // const s3 = new S3();
-    // const { Location } = await s3.send(
-    //   new PutObjectCommand({
-    //     Bucket: s3BucketName,
-    //     Key: s3AccessKey,
-    //     Body: buffer,
-    //     ContentType: mime,
-    //     Key: imageKey,
-    //   })
-    // );
-
-    // const { slug: previousSlug } = await prisma.organization.findUniqueOrThrow({
-    //   where: {
-    //     id: organizationId,
-    //     admins: {
-    //       some: {
-    //         id: req.adminId,
-    //       },
-    //     },
-    //   },
-    //   select: { slug: true },
-    // });
+    let imageId ;
+    if(dataUrl) {
+      // Extract Mime and Buffer from dataUrl
+      const mime = dataUrl?.split(":")[1].split(";")[0];
+      const base64 = dataUrl?.split(",")[1];
+      const buffer = Buffer.from(base64, "base64");
+  
+      imageId = nano_id()
+      // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
+      const imageKey = `${organizationId}/logos/${imageId}`;
+  
+       // Upload the image to S3
+       await s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.S3_BUCKET_NAME!, 
+          Body: buffer,
+          ContentType: mime,
+          Key: imageKey,
+        })
+      ); 
+    }
 
     const organization = await prisma.organization.update({
       where: {
@@ -190,22 +172,17 @@ router.put(
       },
       data: {
         title,
-        // logo: {
-        //   prisma.image.create({
-        //     data: {
-        //       id: nano_id(),
-        //       url:
-        //     },
-        //   }),
-        // },
-        // slug,
-      },
+        logo: imageId ? {
+        create: {
+        id: imageId,
+        organizationId: organizationId,
+        url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${organizationId}/logos/${imageId}`,
+        }
+      }: undefined,
+    },
       select: OrganizationSelect,
     });
 
-    // if (previousSlug !== organization.slug) {
-    //   redis.del(RedisKeys.organizationBySlug(previousSlug));
-    // }
     const clientOrganization = await prisma.organization.findUniqueOrThrow({
       where: {
         id: organizationId,
