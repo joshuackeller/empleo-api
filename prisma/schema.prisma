@@ -24,6 +24,7 @@ model Organization {
     images      Image[]   @relation("OrganizationImages")
     logoId      String?   @unique @map("logo_id")
     logo        Image?    @relation(fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    // selectedFont String?  @map("selected_font")
 
     @@map("organization")
 }
