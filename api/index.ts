@@ -3,6 +3,7 @@ import cors from "cors";
 import handler from "../src/middleware/handler";
 import ErrorHandler from "../src/middleware/ErrorHandler";
 import prisma from "../src/utilities/prisma";
+import bodyParser from "body-parser";
 
 // IMPORT ADMIN ROUTES
 import admin_auth from "./admin/auth";
@@ -21,7 +22,7 @@ app.use(
     origin: "*",
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
 
 // TEST ENDPOINT
 app.get(

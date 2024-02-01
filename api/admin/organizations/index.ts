@@ -15,14 +15,15 @@ import {
 } from "../../../src/utilities/domains";
 import { ClientError } from "../../../src/utilities/errors";
 import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
+import bodyParser from "body-parser";
 
-const s3 = new S3({ 
-region: 'us-east-1',
-credentials: {
-  accessKeyId: process.env.S3_ACCESS_KEY!,
-  secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!
-}
- });
+const s3 = new S3({
+  region: "us-east-1",
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+  },
+});
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -89,13 +90,13 @@ router.post(
       })
       .parse(req.body);
 
-const domain = await AddDomainToProject(slug);
+    const domain = await AddDomainToProject(slug);
     const organization = await prisma.organization.create({
       data: {
         id: nano_id(),
         title,
         slug,
-dnsRecordId: domain.dnsRecordId,
+        dnsRecordId: domain.dnsRecordId,
         admins: {
           connect: {
             id: req.adminId,
@@ -139,26 +140,26 @@ router.put(
       })
       .parse(req.params);
 
-    let imageId ;
-    if(dataUrl) {
+    let imageId;
+    if (dataUrl) {
       // Extract Mime and Buffer from dataUrl
       const mime = dataUrl?.split(":")[1].split(";")[0];
       const base64 = dataUrl?.split(",")[1];
       const buffer = Buffer.from(base64, "base64");
-  
-      imageId = nano_id()
+
+      imageId = nano_id();
       // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
       const imageKey = `${organizationId}/logos/${imageId}`;
-  
-       // Upload the image to S3
-       await s3.send(
+
+      // Upload the image to S3
+      await s3.send(
         new PutObjectCommand({
-          Bucket: process.env.S3_BUCKET_NAME!, 
+          Bucket: process.env.S3_BUCKET_NAME!,
           Body: buffer,
           ContentType: mime,
           Key: imageKey,
-        })
-      ); 
+        }),
+      );
     }
 
     const organization = await prisma.organization.update({
@@ -172,14 +173,16 @@ router.put(
       },
       data: {
         title,
-        logo: imageId ? {
-        create: {
-        id: imageId,
-        organizationId: organizationId,
-        url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${organizationId}/logos/${imageId}`,
-        }
-      }: undefined,
-    },
+        logo: imageId
+          ? {
+              create: {
+                id: imageId,
+                organizationId: organizationId,
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${organizationId}/logos/${imageId}`,
+              },
+            }
+          : undefined,
+      },
       select: OrganizationSelect,
     });
 
@@ -299,6 +302,5 @@ router.put(
     }
   }),
 );
-
 
 export default router;
