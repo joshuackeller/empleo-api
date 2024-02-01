@@ -32,10 +32,11 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   logo: {
     select: {
       id: true,
-      url: true
-    }
+      url: true,
+    },
   },
-  // selectedFont: true,
+  headerFont: true,
+  bodyFont: true,
   createdAt: true,
   updatedAt: true,
 };
