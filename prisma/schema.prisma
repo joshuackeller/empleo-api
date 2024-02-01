@@ -11,6 +11,11 @@ datasource db {
     directUrl = env("DANGEROUS_DATABASE_URL")
 }
 
+enum Font {
+    inter
+    notoSerif
+}
+
 model Organization {
     id          String    @id
     title       String
@@ -24,6 +29,8 @@ model Organization {
     images      Image[]   @relation("OrganizationImages")
     logoId      String?   @unique @map("logo_id")
     logo        Image?    @relation(fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    headerFont  Font      @default(inter) @map("header_font")
+    bodyFont    Font      @default(inter) @map("body_font")
 
     @@map("organization")
 }
