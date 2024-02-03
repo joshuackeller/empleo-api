@@ -79,7 +79,7 @@ router.post(
 router.put(
   "/:listingId",
   handler(async (req: EmpleoRequest, res) => {
-    const { jobTitle } = z
+    const data = z
       .object({
         jobTitle: z.string(),
         jobDescription: z.string().optional(),
@@ -102,9 +102,7 @@ router.put(
         id: listingId,
         organizationId: req.organizationId,
       },
-      data: {
-        jobTitle,
-      },
+      data,
     });
 
     res.json(listing);

@@ -4,7 +4,7 @@ import { NextFunction, Response } from "express";
 import prisma from "../utilities/prisma";
 
 import { Redis } from "@upstash/redis";
-import CreateRedisAdminOrgKey from "../utilities/CreateRedisAdminOrgKey";
+import RedisKeys from "../utilities/RedisKeys";
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -14,7 +14,7 @@ const redis = new Redis({
 export default async function OrgMiddleware(
   req: EmpleoRequest,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     if (!req.adminId) {
@@ -28,9 +28,9 @@ export default async function OrgMiddleware(
       throw new ClientError("No organization header", 403);
     }
 
-    const adminOrgKey = CreateRedisAdminOrgKey(
+    const adminOrgKey = RedisKeys.adminOrganization(
       req.adminId,
-      req.headers.organization as string
+      req.headers.organization as string,
     );
 
     const data = await redis.get(adminOrgKey);
