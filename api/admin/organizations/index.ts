@@ -16,6 +16,7 @@ import {
 import { ClientError } from "../../../src/utilities/errors";
 import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 import bodyParser from "body-parser";
+import { Font } from "@prisma/client";
 import axios from "axios";
 
 const s3 = new S3({
@@ -144,10 +145,11 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { title, dataUrl } = z // destructure dataUrl here as well
+    const { title, dataUrl, headerFont } = z // destructure dataUrl here as well
       .object({
         title: z.string().optional(),
         dataUrl: z.string().optional(), // Include dataUrl in the schema
+        headerFont: z.string().optional(),
       })
       .parse(req.body);
 
@@ -156,6 +158,9 @@ router.put(
         organizationId: z.string(),
       })
       .parse(req.params);
+
+    // Header font -- Convert headerFont to EnumFontFieldUpdateOperationsInput
+    const prismaHeaderFont = headerFont as Font;
 
     let imageId;
     if (dataUrl) {
@@ -190,6 +195,7 @@ router.put(
       },
       data: {
         title,
+        headerFont : prismaHeaderFont,
         logo: imageId
           ? {
               create: {

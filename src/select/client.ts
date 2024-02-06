@@ -10,6 +10,8 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
     }
   },
   // selectedFont: true,
+  headerFont: true,
+  bodyFont: true,
   createdAt: true,
   updatedAt: true,
 };
