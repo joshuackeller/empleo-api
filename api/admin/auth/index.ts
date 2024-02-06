@@ -8,7 +8,7 @@ import nano_id from "../../../src/utilities/nano_id";
 import jwt from "jsonwebtoken";
 import express from "express";
 import handler from "../../../src/middleware/handler";
-
+import axios from "axios";
 const resend = new Resend(process.env.RESEND_KEY);
 
 const SALT_ROUNDS = 13;
@@ -17,14 +17,32 @@ const router = express.Router();
 router.post(
   "/create_account",
   handler(async (req, res) => {
-    const { email, firstName, lastName, password } = z
+    const { email, firstName, lastName, password, cloudflareToken } = z
       .object({
         email: z.string().email(),
         firstName: z.string(),
         lastName: z.string(),
         password: z.string().min(8, "Password must be 8 characters or more "),
+        cloudflareToken: z.string({
+          required_error: "No Cloudflare Token Provided",
+        }),
       })
       .parse(req.body);
+
+    const formData = new FormData();
+    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    formData.append("response", cloudflareToken);
+    formData.append("remoteip", req.ip!);
+
+    const { data: response } = await axios.post(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      formData,
+    );
+
+    if (response.success !== true) {
+      throw new ClientError("Invalid token. Refresh page.");
+    }
+
     let admin = await prisma.admin.findUnique({
       where: { email, selfCreated: true },
     });
@@ -67,10 +85,10 @@ router.post(
 
       const token = jwt.sign(
         { adminId: admin.id },
-        SecretToken.confirm_account
+        SecretToken.confirm_account,
       );
       try {
-        const response = await resend.emails.send({
+        await resend.emails.send({
           from: "Empleo <no-reply@mail.empleo.work>",
           to: [email],
           subject: "Confirm Email",
@@ -81,16 +99,15 @@ router.post(
             `,
           text: `<p>Click the following link to confirm your email: ${process.env.API_URL}/admin/auth/confirm?token=${token}`,
         });
-        console.log(response);
       } catch (error) {
-        console.error(error);
+        console.error("Could not send email", error);
       }
       res.json({
         message:
           "Account created successfully. Confirm email before signing in.",
       });
     }
-  })
+  }),
 );
 
 router.get(
@@ -121,17 +138,34 @@ router.get(
           (error as any)?.message || "Something went wrong. Please try again.",
       });
     }
-  })
+  }),
 );
 
 router.post(
   "/resend",
   handler(async (req, res) => {
-    const { email } = z
+    const { email, cloudflareToken } = z
       .object({
         email: z.string().email(),
+        cloudflareToken: z.string({
+          required_error: "No Cloudflare Token Provided",
+        }),
       })
       .parse(req.body);
+
+    const formData = new FormData();
+    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    formData.append("response", cloudflareToken);
+    formData.append("remoteip", req.ip!);
+
+    const { data: response } = await axios.post(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      formData,
+    );
+
+    if (response.success !== true) {
+      throw new ClientError("Invalid token. Refresh page.");
+    }
 
     const admin = await prisma.admin.findUnique({
       where: {
@@ -145,7 +179,7 @@ router.post(
       }
       const token = jwt.sign(
         { adminId: admin.id },
-        SecretToken.confirm_account
+        SecretToken.confirm_account,
       );
       try {
         await resend.emails.send({
@@ -160,7 +194,7 @@ router.post(
           text: `Click the following link to confirm your email: ${process.env.API_URL}/admin/auth/confirm?token=${token}`,
         });
       } catch (error) {
-        console.error(error);
+        console.error("Could not send email", error);
       }
       res.json({
         message: "Email sent successfully",
@@ -168,22 +202,38 @@ router.post(
     } else {
       throw new ClientError(
         "No account with this email was found. Please create a new account",
-        400
+        400,
       );
     }
-  })
+  }),
 );
 
 router.post(
   "/sign_in",
   handler(async (req, res) => {
-    console.log("MADE IT HERE")
-    const { email, password } = z
+    const { email, password, cloudflareToken } = z
       .object({
         email: z.string(),
         password: z.string(),
+        cloudflareToken: z.string({
+          required_error: "No Cloudflare Token Provided",
+        }),
       })
       .parse(req.body);
+
+    const formData = new FormData();
+    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    formData.append("response", cloudflareToken);
+    formData.append("remoteip", req.ip!);
+
+    const { data: response } = await axios.post(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      formData,
+    );
+
+    if (response.success !== true) {
+      throw new ClientError("Invalid token. Refresh Page.");
+    }
 
     let admin;
     try {
@@ -216,17 +266,34 @@ router.post(
     } else {
       throw new ClientError("Incorrect email or password", 403);
     }
-  })
+  }),
 );
 
 router.post(
   "/reset_password/request",
   handler(async (req, res) => {
-    const { email } = z
+    const { email, cloudflareToken } = z
       .object({
         email: z.string(),
+        cloudflareToken: z.string({
+          required_error: "No Cloudflare Token Provided",
+        }),
       })
       .parse(req.body);
+
+    const formData = new FormData();
+    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    formData.append("response", cloudflareToken);
+    formData.append("remoteip", req.ip!);
+
+    const { data: response } = await axios.post(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      formData,
+    );
+
+    if (response.success !== true) {
+      throw new ClientError("Invalid token. Refresh Page.");
+    }
 
     let admin;
     try {
@@ -245,7 +312,7 @@ router.post(
       SecretToken.reset_password,
       {
         expiresIn: "1hr",
-      }
+      },
     );
     const link = `${process.env.WEBSITE_URL}/auth/reset_password?token=${token}`;
     try {
@@ -266,7 +333,7 @@ router.post(
     res.json({
       message: "Email sent successfully",
     });
-  })
+  }),
 );
 
 router.post(
@@ -307,7 +374,7 @@ router.post(
       }
       throw new ClientError(message);
     }
-  })
+  }),
 );
 
 export default router;
