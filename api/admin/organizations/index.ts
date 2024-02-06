@@ -145,11 +145,12 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { title, dataUrl, headerFont } = z // destructure dataUrl here as well
+    const { title, dataUrl, headerFont, bodyFont } = z // destructure dataUrl here as well
       .object({
         title: z.string().optional(),
         dataUrl: z.string().optional(), // Include dataUrl in the schema
         headerFont: z.string().optional(),
+        bodyFont: z.string().optional(),
       })
       .parse(req.body);
 
@@ -161,6 +162,9 @@ router.put(
 
     // Header font -- Convert headerFont to EnumFontFieldUpdateOperationsInput
     const prismaHeaderFont = headerFont as Font;
+
+    // Body font -- Convert bodyFont to EnumFontFieldUpdateOperationsInput
+    const prismaBodyFont = bodyFont as Font;
 
     let imageId;
     if (dataUrl) {
@@ -196,6 +200,7 @@ router.put(
       data: {
         title,
         headerFont : prismaHeaderFont,
+        bodyFont : prismaBodyFont,
         logo: imageId
           ? {
               create: {
