@@ -9,9 +9,12 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
       url: true
     }
   },
-  // selectedFont: true,
   headerFont: true,
   bodyFont: true,
+  primaryColor: true,
+  secondaryColor: true,
+  description: true,
+  longDescription: true,
   createdAt: true,
   updatedAt: true,
 };
