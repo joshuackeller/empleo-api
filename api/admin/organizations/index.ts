@@ -145,7 +145,7 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { title, dataUrl, headerFont, bodyFont, primaryColor, secondaryColor, description } = z // destructure dataUrl here as well
+    const { title, dataUrl, headerFont, bodyFont, primaryColor, secondaryColor, description, longDescription } = z // destructure dataUrl here as well
       .object({
         title: z.string().optional(),
         dataUrl: z.string().optional(), // Include dataUrl in the schema
@@ -154,6 +154,7 @@ router.put(
         primaryColor: z.string().optional(),
         secondaryColor: z.string().optional(),
         description: z.string().optional(),
+        longDescription: z.string().optional(),
       })
       .parse(req.body);
 
@@ -207,6 +208,7 @@ router.put(
         primaryColor,
         secondaryColor,
         description,
+        longDescription,
         logo: imageId
           ? {
               create: {
