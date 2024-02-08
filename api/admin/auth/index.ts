@@ -97,7 +97,7 @@ router.post(
                 <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/admin/auth/confirm?token=${token}"> ${process.env.API_URL}/admin/auth/confirm?token=${token}</a></p>
             </div>
             `,
-          text: `<p>Click the following link to confirm your email: ${process.env.API_URL}/admin/auth/confirm?token=${token}`,
+          text: `Click the following link to confirm your email: ${process.env.API_URL}/admin/auth/confirm?token=${token}`,
         });
       } catch (error) {
         console.error("Could not send email", error);

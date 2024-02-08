@@ -17,24 +17,24 @@ enum Font {
 }
 
 model Organization {
-    id          String    @id
-    title       String
-    slug        String    @unique
-    dnsRecordId String    @unique
-    createdAt   DateTime  @default(now()) @map("created_at")
-    updatedAt   DateTime  @updatedAt @map("updated_at")
-    users       User[]
-    admins      Admin[]
-    listing     Listing[]
-    images      Image[]   @relation("OrganizationImages")
-    logoId      String?   @unique @map("logo_id")
-    logo        Image?    @relation(fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    headerFont  Font      @default(inter) @map("header_font")
-    bodyFont    Font      @default(inter) @map("body_font")
-    primaryColor String?  @map("primary_color")
-    secondaryColor String? @map("secondary_color")
-    description String?   @map("description")
-    longDescription String? @map("long_description")
+    id              String    @id
+    title           String
+    slug            String    @unique
+    dnsRecordId     String    @unique
+    createdAt       DateTime  @default(now()) @map("created_at")
+    updatedAt       DateTime  @updatedAt @map("updated_at")
+    users           User[]
+    admins          Admin[]
+    listing         Listing[]
+    images          Image[]   @relation("OrganizationImages")
+    logoId          String?   @unique @map("logo_id")
+    logo            Image?    @relation(fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    headerFont      Font      @default(inter) @map("header_font")
+    bodyFont        Font      @default(inter) @map("body_font")
+    primaryColor    String?   @map("primary_color")
+    secondaryColor  String?   @map("secondary_color")
+    description     String?   @map("description")
+    longDescription String?   @map("long_description")
 
     @@map("organization")
 }
@@ -56,13 +56,10 @@ model Admin {
 
 model User {
     id             String         @id
-    firstName      String         @map("first_name")
-    lastName       String?        @map("last_name")
     email          String         @unique
     emailConfirmed Boolean        @default(false) @map("email_confirmed")
     createdAt      DateTime       @default(now()) @map("created_at")
     updatedAt      DateTime       @updatedAt @map("updated_at")
-    password       Password?
     organizations  Organization[]
 
     @@map("user")
@@ -72,8 +69,6 @@ model Password {
     id      String  @id
     adminId String? @unique @map("admin_id")
     admin   Admin?  @relation(fields: [adminId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-    userId  String? @unique @map("user_id")
-    user    User?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
     hash    String
 
     @@map("password")
