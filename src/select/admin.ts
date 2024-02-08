@@ -39,6 +39,7 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   bodyFont: true,
   primaryColor: true,
   secondaryColor: true,
+  accentColor: true,
   description: true,
   longDescription: true,
   createdAt: true,
