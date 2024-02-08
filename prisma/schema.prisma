@@ -33,6 +33,7 @@ model Organization {
     bodyFont    Font      @default(inter) @map("body_font")
     primaryColor String?  @map("primary_color")
     secondaryColor String? @map("secondary_color")
+    accentColor String?    @map("accent_color")
     description String?   @map("description")
     longDescription String? @map("long_description")
 
