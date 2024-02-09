@@ -145,11 +145,21 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { title, dataUrl, headerFont } = z // destructure dataUrl here as well
+    const { 
+      title, dataUrl, dataUrlBanner, headerFont, 
+      bodyFont, primaryColor, secondaryColor, 
+      accentColor, description, longDescription } = z 
       .object({
         title: z.string().optional(),
-        dataUrl: z.string().optional(), // Include dataUrl in the schema
+        dataUrl: z.string().optional(),
+        dataUrlBanner: z.string().optional(),
         headerFont: z.string().optional(),
+        bodyFont: z.string().optional(),
+        primaryColor: z.string().optional(),
+        secondaryColor: z.string().optional(),
+        accentColor: z.string().optional(),
+        description: z.string().optional(),
+        longDescription: z.string().optional(),
       })
       .parse(req.body);
 
@@ -162,6 +172,9 @@ router.put(
     // Header font -- Convert headerFont to EnumFontFieldUpdateOperationsInput
     const prismaHeaderFont = headerFont as Font;
 
+    // Body font -- Convert bodyFont to EnumFontFieldUpdateOperationsInput
+    const prismaBodyFont = bodyFont as Font;
+
     let imageId;
     if (dataUrl) {
       // Extract Mime and Buffer from dataUrl
@@ -172,6 +185,28 @@ router.put(
       imageId = nano_id();
       // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
       const imageKey = `${organizationId}/logos/${imageId}`;
+
+      // Upload the image to S3
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.S3_BUCKET_NAME!,
+          Body: buffer,
+          ContentType: mime,
+          Key: imageKey,
+        }),
+      );
+    }
+
+    let imageIdBanner;
+    if (dataUrlBanner) {
+      // Extract Mime and Buffer from dataUrl
+      const mime = dataUrlBanner?.split(":")[1].split(";")[0];
+      const base64 = dataUrlBanner?.split(",")[1];
+      const buffer = Buffer.from(base64, "base64");
+
+      imageIdBanner = nano_id();
+      // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
+      const imageKey = `${organizationId}/banners/${imageIdBanner}`;
 
       // Upload the image to S3
       await s3.send(
@@ -196,12 +231,27 @@ router.put(
       data: {
         title,
         headerFont : prismaHeaderFont,
+        bodyFont : prismaBodyFont,
+        primaryColor,
+        secondaryColor,
+        accentColor,
+        description,
+        longDescription,
         logo: imageId
           ? {
               create: {
                 id: imageId,
                 organizationId: organizationId,
                 url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${organizationId}/logos/${imageId}`,
+              },
+            }
+          : undefined,
+        banner: imageIdBanner
+          ? {
+              create: {
+                id: imageIdBanner,
+                organizationId: organizationId,
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${organizationId}/banners/${imageIdBanner}`,
               },
             }
           : undefined,
