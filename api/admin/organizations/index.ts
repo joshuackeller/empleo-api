@@ -145,10 +145,14 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { title, dataUrl, headerFont, bodyFont, primaryColor, secondaryColor, accentColor, description, longDescription } = z // destructure dataUrl here as well
+    const { 
+      title, dataUrl, dataUrlBanner, headerFont, 
+      bodyFont, primaryColor, secondaryColor, 
+      accentColor, description, longDescription } = z 
       .object({
         title: z.string().optional(),
-        dataUrl: z.string().optional(), // Include dataUrl in the schema
+        dataUrl: z.string().optional(),
+        dataUrlBanner: z.string().optional(),
         headerFont: z.string().optional(),
         bodyFont: z.string().optional(),
         primaryColor: z.string().optional(),
@@ -193,6 +197,28 @@ router.put(
       );
     }
 
+    let imageIdBanner;
+    if (dataUrlBanner) {
+      // Extract Mime and Buffer from dataUrl
+      const mime = dataUrlBanner?.split(":")[1].split(";")[0];
+      const base64 = dataUrlBanner?.split(",")[1];
+      const buffer = Buffer.from(base64, "base64");
+
+      imageIdBanner = nano_id();
+      // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
+      const imageKey = `${organizationId}/banners/${imageIdBanner}`;
+
+      // Upload the image to S3
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.S3_BUCKET_NAME!,
+          Body: buffer,
+          ContentType: mime,
+          Key: imageKey,
+        }),
+      );
+    }
+
     const organization = await prisma.organization.update({
       where: {
         id: organizationId,
@@ -217,6 +243,15 @@ router.put(
                 id: imageId,
                 organizationId: organizationId,
                 url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${organizationId}/logos/${imageId}`,
+              },
+            }
+          : undefined,
+        banner: imageIdBanner
+          ? {
+              create: {
+                id: imageIdBanner,
+                organizationId: organizationId,
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${organizationId}/banners/${imageIdBanner}`,
               },
             }
           : undefined,
