@@ -11,10 +11,21 @@ import { Redis } from "@upstash/redis";
 import RedisKeys from "../../../src/utilities/RedisKeys";
 import {
   AddDomainToProject,
-  RemoveDomainFromProject,
   UpdateProjectDomain,
 } from "../../../src/utilities/domains";
 import { ClientError } from "../../../src/utilities/errors";
+import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
+import bodyParser from "body-parser";
+import { Font } from "@prisma/client";
+import axios from "axios";
+
+const s3 = new S3({
+  region: "us-east-1",
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+  },
+});
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -71,16 +82,32 @@ router.get(
 router.post(
   "/",
   handler(async (req: EmpleoRequest, res) => {
-    const { title, slug } = z
+    const { title, slug, cloudflareToken } = z
       .object({
         title: z.string(),
         slug: z.string().refine((value) => /^[a-z0-9-]+$/.test(value), {
           message:
             "Slug can only contain lowercase letters, numbers, and dashes",
         }),
+        cloudflareToken: z.string({
+          required_error: "No Cloudflare Token Provided",
+        }),
       })
       .parse(req.body);
 
+    const formData = new FormData();
+    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    formData.append("response", cloudflareToken);
+    formData.append("remoteip", req.ip!);
+
+    const { data: response } = await axios.post(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      formData,
+    );
+
+    if (response.success !== true) {
+      throw new ClientError("Invalid token. Refresh Page.");
+    }
     const domain = await AddDomainToProject(slug);
     const organization = await prisma.organization.create({
       data: {
@@ -118,9 +145,11 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
-    const { title } = z
+    const { title, dataUrl, headerFont } = z // destructure dataUrl here as well
       .object({
         title: z.string().optional(),
+        dataUrl: z.string().optional(), // Include dataUrl in the schema
+        headerFont: z.string().optional(),
       })
       .parse(req.body);
 
@@ -129,6 +158,31 @@ router.put(
         organizationId: z.string(),
       })
       .parse(req.params);
+
+    // Header font -- Convert headerFont to EnumFontFieldUpdateOperationsInput
+    const prismaHeaderFont = headerFont as Font;
+
+    let imageId;
+    if (dataUrl) {
+      // Extract Mime and Buffer from dataUrl
+      const mime = dataUrl?.split(":")[1].split(";")[0];
+      const base64 = dataUrl?.split(",")[1];
+      const buffer = Buffer.from(base64, "base64");
+
+      imageId = nano_id();
+      // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
+      const imageKey = `${organizationId}/logos/${imageId}`;
+
+      // Upload the image to S3
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.S3_BUCKET_NAME!,
+          Body: buffer,
+          ContentType: mime,
+          Key: imageKey,
+        }),
+      );
+    }
 
     const organization = await prisma.organization.update({
       where: {
@@ -141,6 +195,16 @@ router.put(
       },
       data: {
         title,
+        headerFont : prismaHeaderFont,
+        logo: imageId
+          ? {
+              create: {
+                id: imageId,
+                organizationId: organizationId,
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${organizationId}/logos/${imageId}`,
+              },
+            }
+          : undefined,
       },
       select: OrganizationSelect,
     });

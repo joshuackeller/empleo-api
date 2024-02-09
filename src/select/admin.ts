@@ -29,6 +29,14 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   id: true,
   title: true,
   slug: true,
+  logo: {
+    select: {
+      id: true,
+      url: true,
+    },
+  },
+  headerFont: true,
+  bodyFont: true,
   createdAt: true,
   updatedAt: true,
 };
@@ -63,4 +71,31 @@ export const BaseListingSelect: Prisma.ListingSelect = {
 };
 export const ListingSelect: Prisma.ListingSelect = {
   ...BaseListingSelect,
+};
+
+export const BaseApplicationSelect: Prisma.ApplicationSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  phone: true,
+  gender: true,
+  streetAddress: true,
+  cityAddress: true,
+  stateAddress: true,
+  zipAddress: true,
+  usCitizen: true,
+  workVisa: true,
+  workVisaType: true,
+  language: true,
+  availableStartDate: true,
+  note: true,
+  relocate: true,
+  resumeLink: true,
+  coverLetter: true,
+  createdAt: true,
+  updatedAt: true,
+};
+export const ApplicationSelect: Prisma.ApplicationSelect = {
+  ...BaseApplicationSelect,
 };
