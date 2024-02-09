@@ -37,18 +37,6 @@ app.get(
   }),
 );
 
-app.get(
-  "/test",
-  handler(async (_req, res) => {
-    const orgs = await prisma.organization.delete({
-      where: {
-        id: "RB3sv4GvFBra",
-      },
-    });
-    return res.send(JSON.stringify(orgs, "", 2));
-  }),
-);
-
 // ADMIN ROUTES
 app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
