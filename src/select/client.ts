@@ -6,8 +6,8 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   slug: true,
   logo: {
     select: {
-      url: true
-    }
+      url: true,
+    },
   },
   banner: { 
     select: {
@@ -26,4 +26,14 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
 };
 export const OrganizationSelect: Prisma.OrganizationSelect = {
   ...BaseOrganizationSelect,
+};
+
+export const BaseUserSelect: Prisma.UserSelect = {
+  id: true,
+  email: true,
+  createdAt: true,
+  updatedAt: true,
+};
+export const UserSelect: Prisma.UserSelect = {
+  ...BaseUserSelect,
 };

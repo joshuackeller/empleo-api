@@ -58,7 +58,7 @@ router.get(
     });
 
     res.json(organization);
-  }),
+  })
 );
 
 router.get(
@@ -76,7 +76,7 @@ router.get(
     });
 
     res.json(organization);
-  }),
+  })
 );
 
 router.post(
@@ -102,7 +102,7 @@ router.post(
 
     const { data: response } = await axios.post(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData,
+      formData
     );
 
     if (response.success !== true) {
@@ -135,11 +135,11 @@ router.post(
     });
     redis.set(
       RedisKeys.organizationBySlug(organization.slug),
-      clientOrganization,
+      clientOrganization
     );
 
     res.json(organization);
-  }),
+  })
 );
 
 router.put(
@@ -193,7 +193,7 @@ router.put(
           Body: buffer,
           ContentType: mime,
           Key: imageKey,
-        }),
+        })
       );
     }
 
@@ -272,11 +272,11 @@ router.put(
     });
     redis.set(
       RedisKeys.organizationBySlug(organization.slug),
-      clientOrganization,
+      clientOrganization
     );
 
     res.json(organization);
-  }),
+  })
 );
 
 router.put(
@@ -330,7 +330,7 @@ router.put(
         await UpdateProjectDomain(
           currentOrganizationData.slug,
           slug,
-          currentOrganizationData.dnsRecordId,
+          currentOrganizationData.dnsRecordId
         );
       } else {
         domain = await AddDomainToProject(slug);
@@ -366,14 +366,14 @@ router.put(
       });
       redis.set(
         RedisKeys.organizationBySlug(organization.slug),
-        clientOrganization,
+        clientOrganization
       );
       res.json(organization);
     } else {
       delete (currentOrganizationData as any).dnsRecordId;
       res.json(currentOrganizationData);
     }
-  }),
+  })
 );
 
 export default router;
