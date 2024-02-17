@@ -77,11 +77,36 @@ export const BaseListingSelect: Prisma.ListingSelect = {
   salaryRange: true,
   jobDescription: true,
   jobRequirements: true,
-  organizationId: true,
-  organization: true,
   createdAt: true,
   updatedAt: true,
 };
 export const ListingSelect: Prisma.ListingSelect = {
   ...BaseListingSelect,
+};
+
+export const BaseApplicationSelect: Prisma.ApplicationSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
+  gender: true,
+  address: true,
+  city: true,
+  state: true,
+  zip: true,
+  usCitizen: true,
+  workVisa: true,
+  workVisaType: true,
+  language: true,
+  availableStartDate: true,
+  note: true,
+  relocate: true,
+  //resumeLink: true,
+  //coverLetter: true,
+  createdAt: true,
+  updatedAt: true,
+  userId: true,
+};
+export const ApplicationSelect: Prisma.ApplicationSelect = {
+  ...BaseApplicationSelect,
 };

@@ -71,6 +71,7 @@ model User {
     createdAt      DateTime       @default(now()) @map("created_at")
     updatedAt      DateTime       @updatedAt @map("updated_at")
     organizations  Organization[]
+    applications   Application[]
 
     @@map("user")
 }
@@ -97,9 +98,51 @@ model Listing {
     jobRequirements String?       @map("job_requirements")
     createdAt       DateTime      @default(now()) @map("created_at")
     updatedAt       DateTime      @updatedAt @map("updated_at")
+    Application     Application[]
 
+    @@unique([organizationId, id])
     @@index([organizationId])
     @@map("listing")
+}
+
+enum Gender {
+    male
+    female
+    prefer_not_to_say
+    other
+}
+
+model Application {
+    id                 String    @id
+    organizationId     String?   @map("organization_id")
+    listingId          String?   @map("listing_id")
+    listing            Listing?  @relation(fields: [organizationId, listingId], references: [organizationId, id], onDelete: Cascade, onUpdate: Cascade)
+    userId             String    @map("user_id")
+    user               User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    firstName          String    @map("first_name")
+    lastName           String    @map("last_name")
+    phone              String?   @map("phone")
+    gender             Gender    @default(prefer_not_to_say) @map("gender")
+    address            String?   @map("address")
+    city               String?   @map("city")
+    state              String?   @map("state")
+    zip                String?   @map("zip")
+    usCitizen          Boolean   @default(false) @map("us_citizen")
+    workVisa           Boolean   @default(false) @map("work_visa")
+    workVisaType       String?   @map("work_visa_type")
+    language           String?   @map("language")
+    availableStartDate DateTime? @map("available_start_date")
+    note               String?   @map("note")
+    relocate           Boolean   @default(false)
+    // resumeLink         String?   @map("resume_link")
+    // coverLetter        String?   @map("cover_letter")
+    createdAt          DateTime  @default(now()) @map("created_at")
+    updatedAt          DateTime  @updatedAt @map("updated_at")
+
+    @@unique([organizationId, listingId, id])
+    @@unique([organizationId, listingId, userId])
+    @@index([organizationId, listingId])
+    @@map("application")
 }
 
 model Image {
