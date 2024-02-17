@@ -16,8 +16,13 @@ enum Font {
     notoSerif
 }
 
-model Organization {
+enum Layout {
+    one
+    two
+    three
+}
 
+model Organization {
     id          String    @id
     title       String
     slug        String    @unique
@@ -28,17 +33,10 @@ model Organization {
     admins      Admin[]
     listing     Listing[]
     images      Image[]   @relation("OrganizationImages")
-    
-    // logoId      String?   @unique @map("logo_id")
-    // logo        Image?    @relation(fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    // bannerId    String?   @unique @map("banner_id")
-    // banner      Image?    @relation(fields: [bannerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
     logoId      String?   @unique @map("logo_id")
     logo        Image?    @relation("LogoRelation", fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     bannerId    String?   @unique @map("banner_id")
     banner      Image?    @relation("BannerRelation", fields: [bannerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
     headerFont  Font      @default(inter) @map("header_font")
     bodyFont    Font      @default(inter) @map("body_font")
     primaryColor String?  @map("primary_color")
@@ -46,6 +44,7 @@ model Organization {
     accentColor String?    @map("accent_color")
     description String?   @map("description")
     longDescription String? @map("long_description")
+    layout Layout         @default(one) @map("layout")
 
     @@map("organization")
 }
@@ -108,10 +107,6 @@ model Image {
     organizationId   String        @map("organization_id")
     organization     Organization  @relation("OrganizationImages", fields: [organizationId], references: [id])
     url              String
-
-    // organizationLogo Organization?
-    // organizationBanner Organization?
-
     organizationLogo Organization? @relation("LogoRelation")
     organizationBanner Organization? @relation("BannerRelation")
 
