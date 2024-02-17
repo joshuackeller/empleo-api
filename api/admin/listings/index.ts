@@ -6,15 +6,7 @@ import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
 import { z } from "zod";
 import OrgMiddleware from "../../../src/middleware/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
-import { ListingSelect } from "../../../src/select/admin";
-//import CreateRedisAdminOrgKey from "../../../src/utilities/CreateRedisAdminOrgKey";
-
-import { Redis } from "@upstash/redis";
-
-const redis = new Redis({
-  url: "https://us1-endless-lemur-38129.upstash.io",
-  token: process.env.UPSTASH_TOKEN || "",
-});
+import { ApplicationSelect, ListingSelect } from "../../../src/select/admin";
 
 const router = express.Router();
 
@@ -31,6 +23,27 @@ router.get(
       select: ListingSelect,
     });
     res.json(listings);
+  })
+);
+
+//updating record? (still working on)
+router.get(
+  "/:listingId",
+  handler(async (req: EmpleoRequest, res) => {
+    const { listingId } = z
+      .object({
+        listingId: z.string(),
+      })
+      .parse(req.params);
+
+    const listing = await prisma.listing.findUniqueOrThrow({
+      where: {
+        id: listingId,
+        organizationId: req.organizationId,
+      },
+      select: ListingSelect,
+    });
+    res.json(listing);
   })
 );
 
@@ -61,4 +74,79 @@ router.post(
     res.json(listing);
   })
 );
+
+// update listing
+router.put(
+  "/:listingId",
+  handler(async (req: EmpleoRequest, res) => {
+    const data = z
+      .object({
+        jobTitle: z.string(),
+        jobDescription: z.string().optional(),
+        jobRequirements: z.string().optional(),
+        employmentType: z.string().optional(),
+        location: z.string().optional(),
+        salaryRange: z.string().optional(),
+        published: z.boolean(),
+      })
+      .parse(req.body);
+
+    const { listingId } = z
+      .object({
+        listingId: z.string(),
+      })
+      .parse(req.params);
+
+    const listing = await prisma.listing.update({
+      where: {
+        id: listingId,
+        organizationId: req.organizationId,
+      },
+      data,
+    });
+
+    res.json(listing);
+  })
+);
+
+//Delete Listing
+router.delete(
+  "/:listingId",
+  handler(async (req: EmpleoRequest, res) => {
+    const { listingId } = z
+      .object({
+        listingId: z.string(),
+      })
+      .parse(req.params);
+
+    const listing = await prisma.listing.delete({
+      where: {
+        id: listingId,
+        organizationId: req.organizationId,
+      },
+      select: ListingSelect,
+    });
+
+    res.json(listing);
+  })
+);
+
+router.get("/:listingId/applications", async (req: EmpleoRequest, res) => {
+  const { listingId } = z
+    .object({
+      listingId: z.string(),
+    })
+    .parse(req.params);
+
+  const listings = await prisma.application.findMany({
+    where: {
+      listingId: listingId,
+      organizationId: req.organizationId,
+    },
+    select: ApplicationSelect,
+  });
+
+  res.send(listings);
+});
+
 export default router;

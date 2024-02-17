@@ -7,4 +7,5 @@ export type AdminJWTObject = {
 export interface EmpleoRequest extends Request {
   adminId?: string;
   organizationId?: string;
+  userId?: string;
 }
