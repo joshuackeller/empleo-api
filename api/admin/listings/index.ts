@@ -6,7 +6,7 @@ import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
 import { z } from "zod";
 import OrgMiddleware from "../../../src/middleware/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
-import { ListingSelect } from "../../../src/select/admin";
+import { ApplicationSelect, ListingSelect } from "../../../src/select/admin";
 
 const router = express.Router();
 
@@ -130,4 +130,23 @@ router.delete(
     res.json(listing);
   })
 );
+
+router.get("/:listingId/applications", async (req: EmpleoRequest, res) => {
+  const { listingId } = z
+    .object({
+      listingId: z.string(),
+    })
+    .parse(req.params);
+
+  const listings = await prisma.application.findMany({
+    where: {
+      listingId: listingId,
+      organizationId: req.organizationId,
+    },
+    select: ApplicationSelect,
+  });
+
+  res.send(listings);
+});
+
 export default router;

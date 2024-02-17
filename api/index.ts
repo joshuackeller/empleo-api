@@ -38,6 +38,13 @@ app.get(
   })
 );
 
+//adding test user and application
+app.get("/test", async (_req, res) => {
+  const applications = await prisma.application.findMany();
+
+  res.send(applications);
+});
+
 // ADMIN ROUTES
 app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
@@ -45,6 +52,7 @@ app.use("/admin/organizations", admin_organizations);
 app.use("/admin/admins", admin_admins);
 app.use("/admin/listings", admin_listings);
 app.use("/admin/applications", admin_applications);
+//app.use("/admin/listings/applications", admin_listings_applications);
 
 // CLIENT ROUTES
 app.use("/client/organizations", client_organizations);
