@@ -6,13 +6,13 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   slug: true,
   logo: {
     select: {
-      url: true
-    }
+      url: true,
+    },
   },
-  banner: { 
+  banner: {
     select: {
-      url: true
-    }
+      url: true,
+    },
   },
   headerFont: true,
   bodyFont: true,
@@ -26,4 +26,16 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
 };
 export const OrganizationSelect: Prisma.OrganizationSelect = {
   ...BaseOrganizationSelect,
+};
+
+export const BaseClientListingSelect: Prisma.ListingSelect = {
+  id: true,
+  jobTitle: true,
+  location: true,
+  employmentType: true,
+  salaryRange: true,
+  jobDescription: true,
+  jobRequirements: true,
+  createdAt: true,
+  updatedAt: true,
 };
