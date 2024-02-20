@@ -17,6 +17,7 @@ import { ClientError } from "../../../src/utilities/errors";
 import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 import bodyParser from "body-parser";
 import { Font } from "@prisma/client";
+import { Layout } from "@prisma/client";
 import axios from "axios";
 
 const s3 = new S3({
@@ -58,7 +59,7 @@ router.get(
     });
 
     res.json(organization);
-  }),
+  })
 );
 
 router.get(
@@ -76,7 +77,7 @@ router.get(
     });
 
     res.json(organization);
-  }),
+  })
 );
 
 router.post(
@@ -102,7 +103,7 @@ router.post(
 
     const { data: response } = await axios.post(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData,
+      formData
     );
 
     if (response.success !== true) {
@@ -135,20 +136,20 @@ router.post(
     });
     redis.set(
       RedisKeys.organizationBySlug(organization.slug),
-      clientOrganization,
+      clientOrganization
     );
 
     res.json(organization);
-  }),
+  })
 );
 
 router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
     const { 
-      title, dataUrl, dataUrlBanner, headerFont, 
-      bodyFont, primaryColor, secondaryColor, 
-      accentColor, description, longDescription } = z 
+      title, dataUrl, dataUrlBanner, headerFont,
+      bodyFont, primaryColor, secondaryColor, accentColor,
+      layout, description, longDescription } = z 
       .object({
         title: z.string().optional(),
         dataUrl: z.string().optional(),
@@ -158,6 +159,7 @@ router.put(
         primaryColor: z.string().optional(),
         secondaryColor: z.string().optional(),
         accentColor: z.string().optional(),
+        layout: z.string().optional(),
         description: z.string().optional(),
         longDescription: z.string().optional(),
       })
@@ -174,6 +176,9 @@ router.put(
 
     // Body font -- Convert bodyFont to EnumFontFieldUpdateOperationsInput
     const prismaBodyFont = bodyFont as Font;
+
+    // Layout -- Convert layout to EnumLayoutFieldUpdateOperationsInput
+    const prismaLayout = layout as Layout;
 
     let imageId;
     if (dataUrl) {
@@ -193,7 +198,7 @@ router.put(
           Body: buffer,
           ContentType: mime,
           Key: imageKey,
-        }),
+        })
       );
     }
 
@@ -235,6 +240,7 @@ router.put(
         primaryColor,
         secondaryColor,
         accentColor,
+        layout : prismaLayout,
         description,
         longDescription,
         logo: imageId
@@ -272,11 +278,11 @@ router.put(
     });
     redis.set(
       RedisKeys.organizationBySlug(organization.slug),
-      clientOrganization,
+      clientOrganization
     );
 
     res.json(organization);
-  }),
+  })
 );
 
 router.put(
@@ -330,7 +336,7 @@ router.put(
         await UpdateProjectDomain(
           currentOrganizationData.slug,
           slug,
-          currentOrganizationData.dnsRecordId,
+          currentOrganizationData.dnsRecordId
         );
       } else {
         domain = await AddDomainToProject(slug);
@@ -366,14 +372,14 @@ router.put(
       });
       redis.set(
         RedisKeys.organizationBySlug(organization.slug),
-        clientOrganization,
+        clientOrganization
       );
       res.json(organization);
     } else {
       delete (currentOrganizationData as any).dnsRecordId;
       res.json(currentOrganizationData);
     }
-  }),
+  })
 );
 
 export default router;

@@ -46,6 +46,7 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   primaryColor: true,
   secondaryColor: true,
   accentColor: true,
+  layout: true,
   description: true,
   longDescription: true,
   createdAt: true,
@@ -57,8 +58,8 @@ export const OrganizationSelect: Prisma.OrganizationSelect = {
 
 export const BaseUserSelect: Prisma.UserSelect = {
   id: true,
-  firstName: true,
-  lastName: true,
+  // firstName: true,
+  // lastName: true,
   email: true,
   emailConfirmed: true,
   createdAt: true,
