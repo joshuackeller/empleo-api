@@ -20,6 +20,8 @@ enum Layout {
     one
     two
     three
+    four
+    five
 }
 
 model Organization {

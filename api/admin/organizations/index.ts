@@ -17,6 +17,7 @@ import { ClientError } from "../../../src/utilities/errors";
 import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 import bodyParser from "body-parser";
 import { Font } from "@prisma/client";
+import { Layout } from "@prisma/client";
 import axios from "axios";
 
 const s3 = new S3({
@@ -146,9 +147,9 @@ router.put(
   "/:organizationId",
   handler(async (req: EmpleoRequest, res) => {
     const { 
-      title, dataUrl, dataUrlBanner, headerFont, 
-      bodyFont, primaryColor, secondaryColor, 
-      accentColor, description, longDescription } = z 
+      title, dataUrl, dataUrlBanner, headerFont,
+      bodyFont, primaryColor, secondaryColor, accentColor,
+      layout, description, longDescription } = z 
       .object({
         title: z.string().optional(),
         dataUrl: z.string().optional(),
@@ -158,6 +159,7 @@ router.put(
         primaryColor: z.string().optional(),
         secondaryColor: z.string().optional(),
         accentColor: z.string().optional(),
+        layout: z.string().optional(),
         description: z.string().optional(),
         longDescription: z.string().optional(),
       })
@@ -174,6 +176,9 @@ router.put(
 
     // Body font -- Convert bodyFont to EnumFontFieldUpdateOperationsInput
     const prismaBodyFont = bodyFont as Font;
+
+    // Layout -- Convert layout to EnumLayoutFieldUpdateOperationsInput
+    const prismaLayout = layout as Layout;
 
     let imageId;
     if (dataUrl) {
@@ -235,6 +240,7 @@ router.put(
         primaryColor,
         secondaryColor,
         accentColor,
+        layout : prismaLayout,
         description,
         longDescription,
         logo: imageId
