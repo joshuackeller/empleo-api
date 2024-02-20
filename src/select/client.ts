@@ -40,6 +40,7 @@ export const BaseClientListingSelect: Prisma.ListingSelect = {
   jobRequirements: true,
   createdAt: true,
   updatedAt: true,
+};
 
 export const BaseUserSelect: Prisma.UserSelect = {
   id: true,
