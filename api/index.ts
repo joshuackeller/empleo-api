@@ -15,6 +15,7 @@ import admin_applications from "./admin/applications";
 
 // IMPORT CLIENT ROUTES
 import client_organizations from "./client/organizations";
+import client_listings from "./client/listings";
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use("/admin/applications", admin_applications);
 
 // CLIENT ROUTES
 app.use("/client/organizations", client_organizations);
+app.use("/client/listings", client_listings);
 
 app.use(ErrorHandler);
 
