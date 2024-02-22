@@ -25,12 +25,12 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   createdAt: true,
   updatedAt: true,
 };
+
 export const OrganizationSelect: Prisma.OrganizationSelect = {
   ...BaseOrganizationSelect,
 };
 
-
-export const BaseClientListingSelect: Prisma.ListingSelect = {
+export const BaseListingSelect: Prisma.ListingSelect = {
   id: true,
   jobTitle: true,
   location: true,
@@ -42,13 +42,17 @@ export const BaseClientListingSelect: Prisma.ListingSelect = {
   updatedAt: true,
 };
 
+export const ListingSelect: Prisma.ListingSelect = {
+  ...BaseListingSelect,
+};
+
 export const BaseUserSelect: Prisma.UserSelect = {
   id: true,
   email: true,
   createdAt: true,
   updatedAt: true,
 };
+
 export const UserSelect: Prisma.UserSelect = {
   ...BaseUserSelect,
 };
-

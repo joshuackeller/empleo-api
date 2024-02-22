@@ -1,14 +1,9 @@
 import prisma from "../../../src/utilities/prisma";
 import express from "express";
 import handler from "../../../src/middleware/handler";
-import { EmpleoRequest } from "../../../src/utilities/interfaces";
-import {
-  ClientListingSelect,
-  OrganizationSelect,
-} from "../../../src/select/client";
-import RedisKeys from "../../../src/utilities/RedisKeys";
-import { ListingSelect } from "../../../src/select/admin";
 import { z } from "zod";
+import { ClientRequest } from "../../../src/utilities/interfaces";
+import { ListingSelect } from "../../../src/select/client";
 
 //make new client listings select
 
@@ -16,22 +11,21 @@ const router = express.Router();
 
 router.get(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
-    console.log(req.headers.organization);
+  handler(async (req: ClientRequest, res) => {
     const Listings = await prisma.listing.findMany({
       where: {
         organization: { slug: req.headers.organization as string },
         published: true,
       },
-      select: ClientListingSelect,
+      select: ListingSelect,
     });
     res.json(Listings);
-  })
+  }),
 );
 
 router.get(
   "/:listingId",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: ClientRequest, res) => {
     const { listingId } = z
       .object({
         listingId: z.string(),
@@ -41,13 +35,15 @@ router.get(
     const listing = await prisma.listing.findUniqueOrThrow({
       where: {
         id: listingId,
-        organizationId: req.organizationId,
+        organization: {
+          slug: req.slug,
+        },
         published: true,
       },
-      select: ClientListingSelect,
+      select: ListingSelect,
     });
     res.json(listing);
-  })
+  }),
 );
 
 export default router;
