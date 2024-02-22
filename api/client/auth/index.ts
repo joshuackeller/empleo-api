@@ -95,7 +95,6 @@ router.post(
     // if (response.success !== true) {
     //   throw new ClientError("Invalid token. Refresh page.");
     // }
-    console.log("SLUG", req.slug);
 
     const [organization, user] = await prisma.$transaction([
       prisma.organization.findUniqueOrThrow({
