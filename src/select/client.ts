@@ -9,16 +9,17 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
       url: true,
     },
   },
-  banner: { 
+  banner: {
     select: {
-      url: true
-    }
+      url: true,
+    },
   },
   headerFont: true,
   bodyFont: true,
   primaryColor: true,
   secondaryColor: true,
   accentColor: true,
+  layout: true,
   description: true,
   longDescription: true,
   createdAt: true,
@@ -26,6 +27,19 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
 };
 export const OrganizationSelect: Prisma.OrganizationSelect = {
   ...BaseOrganizationSelect,
+};
+
+
+export const BaseClientListingSelect: Prisma.ListingSelect = {
+  id: true,
+  jobTitle: true,
+  location: true,
+  employmentType: true,
+  salaryRange: true,
+  jobDescription: true,
+  jobRequirements: true,
+  createdAt: true,
+  updatedAt: true,
 };
 
 export const BaseUserSelect: Prisma.UserSelect = {
@@ -37,3 +51,4 @@ export const BaseUserSelect: Prisma.UserSelect = {
 export const UserSelect: Prisma.UserSelect = {
   ...BaseUserSelect,
 };
+

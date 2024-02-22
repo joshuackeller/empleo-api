@@ -15,13 +15,14 @@ import admin_applications from "./admin/applications";
 // IMPORT CLIENT ROUTES
 import client_organizations from "./client/organizations";
 import client_auth from "./client/auth";
+import client_listings from "./client/listings";
 
 const app = express();
 
 app.use(
   cors({
     origin: "*",
-  }),
+  })
 );
 app.use(express.json({ limit: "50mb" }));
 
@@ -35,7 +36,7 @@ app.get(
       },
     });
     res.json(user);
-  }),
+  })
 );
 
 //adding test user and application
@@ -57,6 +58,7 @@ app.use("/admin/applications", admin_applications);
 // CLIENT ROUTES
 app.use("/client/auth", client_auth);
 app.use("/client/organizations", client_organizations);
+app.use("/client/listings", client_listings);
 
 app.use(ErrorHandler);
 
