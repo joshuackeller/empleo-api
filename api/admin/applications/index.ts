@@ -1,10 +1,10 @@
 import prisma from "../../../src/utilities/prisma";
 import express, { application } from "express";
 import handler from "../../../src/middleware/handler";
-import { EmpleoRequest } from "../../../src/utilities/interfaces";
-import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
+import { AdminRequest } from "../../../src/utilities/interfaces";
+import AuthMiddleware from "../../../src/middleware/admin/AuthMiddleware";
 import { z } from "zod";
-import OrgMiddleware from "../../../src/middleware/OrgMiddleware";
+import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
 import { ApplicationSelect } from "../../../src/select/admin";
 import app from "../..";
@@ -16,7 +16,7 @@ router.use(OrgMiddleware);
 
 router.get(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const applications = await prisma.application.findMany({
       where: {
         organizationId: req.organizationId,
@@ -29,7 +29,7 @@ router.get(
 
 router.get(
   "/:applicationId",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { applicationId } = z
       .object({
         applicationId: z.string(),
@@ -49,7 +49,7 @@ router.get(
 
 // router.post(
 //   "/",
-//   handler(async (req: EmpleoRequest, res) => {
+//   handler(async (req: AdminRequest, res) => {
 //     const body = z
 //       .object({
 //         firstName: z.string(),
@@ -91,7 +91,7 @@ router.get(
 // // update listing
 // router.put(
 //   "/:applicationId",
-//   handler(async (req: EmpleoRequest, res) => {
+//   handler(async (req: AdminRequest, res) => {
 //     const data = z
 //       .object({
 //         firstName: z.string(),
@@ -135,7 +135,7 @@ router.get(
 // //Delete Listing
 // router.delete(
 //   "/:applicationId",
-//   handler(async (req: EmpleoRequest, res) => {
+//   handler(async (req: AdminRequest, res) => {
 //     const { applicationId } = z
 //       .object({
 //         applicationId: z.string(),

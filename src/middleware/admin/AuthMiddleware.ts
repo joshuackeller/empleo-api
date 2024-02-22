@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
-import { ClientError } from "../utilities/errors";
-import { AdminJWTObject, EmpleoRequest } from "../utilities/interfaces";
-import SecretToken from "../utilities/SecretToken";
+import { ClientError } from "../../utilities/errors";
+import { AdminJWTObject, AdminRequest } from "../../utilities/interfaces";
+import SecretToken from "../../utilities/SecretToken";
 import { NextFunction, Response } from "express";
 
 export default function AuthMiddleware(
-  req: EmpleoRequest,
+  req: AdminRequest,
   _res: Response,
   next: NextFunction
 ) {

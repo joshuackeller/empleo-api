@@ -1,10 +1,10 @@
-import { ClientError } from "../utilities/errors";
-import { EmpleoRequest } from "../utilities/interfaces";
+import { ClientError } from "../../utilities/errors";
+import { AdminRequest } from "../../utilities/interfaces";
 import { NextFunction, Response } from "express";
-import prisma from "../utilities/prisma";
+import prisma from "../../utilities/prisma";
 
 import { Redis } from "@upstash/redis";
-import RedisKeys from "../utilities/RedisKeys";
+import RedisKeys from "../../utilities/RedisKeys";
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -12,9 +12,9 @@ const redis = new Redis({
 });
 
 export default async function OrgMiddleware(
-  req: EmpleoRequest,
+  req: AdminRequest,
   _res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) {
   try {
     if (!req.adminId) {
@@ -30,7 +30,7 @@ export default async function OrgMiddleware(
 
     const adminOrgKey = RedisKeys.adminOrganization(
       req.adminId,
-      req.headers.organization as string,
+      req.headers.organization as string
     );
 
     const data = await redis.get(adminOrgKey);

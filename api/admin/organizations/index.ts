@@ -1,8 +1,8 @@
 import prisma from "../../../src/utilities/prisma";
 import express from "express";
 import handler from "../../../src/middleware/handler";
-import { EmpleoRequest } from "../../../src/utilities/interfaces";
-import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
+import { AdminRequest } from "../../../src/utilities/interfaces";
+import AuthMiddleware from "../../../src/middleware/admin/AuthMiddleware";
 import { z } from "zod";
 import nano_id from "../../../src/utilities/nano_id";
 import { OrganizationSelect } from "../../../src/select/admin";
@@ -15,7 +15,6 @@ import {
 } from "../../../src/utilities/domains";
 import { ClientError } from "../../../src/utilities/errors";
 import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
-import bodyParser from "body-parser";
 import { Font } from "@prisma/client";
 import { Layout } from "@prisma/client";
 import axios from "axios";
@@ -39,7 +38,7 @@ router.use(AuthMiddleware);
 
 router.get(
   "/:organizationId",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { organizationId } = z
       .object({
         organizationId: z.string(),
@@ -64,7 +63,7 @@ router.get(
 
 router.get(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const organization = await prisma.organization.findMany({
       where: {
         admins: {
@@ -82,7 +81,7 @@ router.get(
 
 router.post(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { title, slug, cloudflareToken } = z
       .object({
         title: z.string(),
@@ -145,11 +144,19 @@ router.post(
 
 router.put(
   "/:organizationId",
-  handler(async (req: EmpleoRequest, res) => {
-    const { 
-      title, dataUrl, dataUrlBanner, headerFont,
-      bodyFont, primaryColor, secondaryColor, accentColor,
-      layout, description, longDescription } = z 
+  handler(async (req: AdminRequest, res) => {
+    const {
+      title,
+      dataUrl,
+      dataUrlBanner,
+      headerFont,
+      bodyFont,
+      primaryColor,
+      secondaryColor,
+      accentColor,
+      description,
+      longDescription,
+    } = z
       .object({
         title: z.string().optional(),
         dataUrl: z.string().optional(),
@@ -220,7 +227,7 @@ router.put(
           Body: buffer,
           ContentType: mime,
           Key: imageKey,
-        }),
+        })
       );
     }
 
@@ -235,12 +242,12 @@ router.put(
       },
       data: {
         title,
-        headerFont : prismaHeaderFont,
-        bodyFont : prismaBodyFont,
+        headerFont: prismaHeaderFont,
+        bodyFont: prismaBodyFont,
         primaryColor,
         secondaryColor,
         accentColor,
-        layout : prismaLayout,
+        layout: prismaLayout,
         description,
         longDescription,
         logo: imageId
@@ -287,7 +294,7 @@ router.put(
 
 router.put(
   "/:organizationId/slug",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { slug } = z
       .object({
         slug: z.string().refine((value) => /^[a-z0-9-]+$/.test(value), {
