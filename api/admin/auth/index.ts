@@ -19,7 +19,7 @@ router.post(
   handler(async (req, res) => {
     const { email, firstName, lastName, password, cloudflareToken } = z
       .object({
-        email: z.string().email(),
+        email: z.string().email().toLowerCase(),
         firstName: z.string(),
         lastName: z.string(),
         password: z.string().min(8, "Password must be 8 characters or more "),
@@ -146,7 +146,7 @@ router.post(
   handler(async (req, res) => {
     const { email, cloudflareToken } = z
       .object({
-        email: z.string().email(),
+        email: z.string().email().toLowerCase(),
         cloudflareToken: z.string({
           required_error: "No Cloudflare Token Provided",
         }),

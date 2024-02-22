@@ -1,10 +1,10 @@
 import prisma from "../../../src/utilities/prisma";
 import express from "express";
 import handler from "../../../src/middleware/handler";
-import { EmpleoRequest } from "../../../src/utilities/interfaces";
-import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
+import { AdminRequest } from "../../../src/utilities/interfaces";
+import AuthMiddleware from "../../../src/middleware/admin/AuthMiddleware";
 import { z } from "zod";
-import OrgMiddleware from "../../../src/middleware/OrgMiddleware";
+import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
 import { ApplicationSelect, ListingSelect } from "../../../src/select/admin";
 
@@ -15,7 +15,7 @@ router.use(OrgMiddleware);
 
 router.get(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const listings = await prisma.listing.findMany({
       where: {
         organizationId: req.organizationId,
@@ -29,7 +29,7 @@ router.get(
 //updating record? (still working on)
 router.get(
   "/:listingId",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { listingId } = z
       .object({
         listingId: z.string(),
@@ -49,7 +49,7 @@ router.get(
 
 router.post(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const body = z
       .object({
         jobTitle: z.string(),
@@ -78,7 +78,7 @@ router.post(
 // update listing
 router.put(
   "/:listingId",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const data = z
       .object({
         jobTitle: z.string(),
@@ -112,7 +112,7 @@ router.put(
 //Delete Listing
 router.delete(
   "/:listingId",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { listingId } = z
       .object({
         listingId: z.string(),
@@ -131,7 +131,7 @@ router.delete(
   })
 );
 
-router.get("/:listingId/applications", async (req: EmpleoRequest, res) => {
+router.get("/:listingId/applications", async (req: AdminRequest, res) => {
   const { listingId } = z
     .object({
       listingId: z.string(),

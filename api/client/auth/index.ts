@@ -2,113 +2,26 @@ import prisma from "../../../src/utilities/prisma";
 import { z } from "zod";
 import { Resend } from "resend";
 import SecretToken from "../../../src/utilities/SecretToken";
-import { ClientError } from "../../../src/utilities/errors";
 import nano_id from "../../../src/utilities/nano_id";
 import jwt from "jsonwebtoken";
 import express from "express";
 import handler from "../../../src/middleware/handler";
-import axios from "axios";
-import { EmpleoRequest } from "../../../src/utilities/interfaces";
+import { ClientRequest } from "../../../src/utilities/interfaces";
 import { OrganizationSelect, UserSelect } from "../../../src/select/client";
+import OrgMiddleware from "../../../src/middleware/client/OrgMiddleware";
 const resend = new Resend(process.env.RESEND_KEY);
 
 const router = express.Router();
-
-router.post(
-  "/request_link",
-  handler(async (req: EmpleoRequest, res) => {
-    const { email, cloudflareToken } = z
-      .object({
-        email: z.string().email(),
-        password: z.string().min(8, "Password must be 8 characters or more "),
-        cloudflareToken: z.string({
-          required_error: "No Cloudflare Token Provided",
-        }),
-      })
-      .parse(req.body);
-
-    const formData = new FormData();
-    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
-    formData.append("response", cloudflareToken);
-    formData.append("remoteip", req.ip!);
-
-    const { data: response } = await axios.post(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData,
-    );
-
-    if (response.success !== true) {
-      throw new ClientError("Invalid token. Refresh page.");
-    }
-
-    const [organization, user] = await prisma.$transaction([
-      prisma.organization.findUniqueOrThrow({
-        where: {
-          id: req.organizationId,
-        },
-        select: OrganizationSelect,
-      }),
-      prisma.user.upsert({
-        where: {
-          email,
-        },
-        update: {
-          email,
-          organizations: {
-            connect: {
-              id: req.organizationId,
-            },
-          },
-        },
-        create: {
-          id: nano_id(),
-          email,
-          emailConfirmed: false,
-          organizations: {
-            connect: {
-              id: req.organizationId,
-            },
-          },
-        },
-        select: UserSelect,
-      }),
-    ]);
-
-    const token = jwt.sign(
-      { userId: user.id, organizationId: organization.id },
-      SecretToken.clientRequestLink,
-    );
-    try {
-      await resend.emails.send({
-        from: `${organization.title} <no-reply@mail.empleo.work>`,
-        to: [email],
-        subject: `${organization.title} Link`,
-        html: `
-            <div>
-                <p>Click the following link to continue to ${organization.title}:
-                    <a href="https://api.empleo.work/confirm_account?token=${token}">https://api.empleo.work/confirm_account?token=${token}</a>
-                </p>
-            </div>
-            `,
-        text: `Click the following link to continue to ${organization.title}: https://api.empleo.work/confirm_account?token=${token}`,
-      });
-    } catch (error) {
-      console.error("Could not send email", error);
-    }
-    res.json({
-      message: "Account created successfully. Check email for sign link.",
-    });
-  }),
-);
 
 router.get(
   "/confirm_account",
   handler(async (req, res) => {
     let organization;
     try {
-      const { token } = z
+      const { token, returnRoute } = z
         .object({
           token: z.string(),
+          returnRoute: z.string(),
         })
         .parse(req.query);
 
@@ -139,11 +52,11 @@ router.get(
       );
 
       res.redirect(
-        `https://${organization.slug}.empleo.work/token?token=${newToken}`,
+        `https://${organization.slug}.empleo.work/token?token=${newToken}&returnRoute=${returnRoute}`,
       );
     } catch {
       if (!!organization && !!organization.slug) {
-        res.redirect(`https://${organization.slug}.empleo.work/token_error`);
+        res.redirect(`https://${organization.slug}.empleo.work/auth_error`);
       } else {
         res.send(`
             <div>
@@ -153,6 +66,95 @@ router.get(
             `);
       }
     }
+  }),
+);
+
+router.use(OrgMiddleware);
+
+router.post(
+  "/request_link",
+  handler(async (req: ClientRequest, res) => {
+    const { email, returnRoute } = z
+      .object({
+        email: z.string().email().toLowerCase(),
+        // cloudflareToken: z.string({
+        //   required_error: "No Cloudflare Token Provided",
+        // }),
+        returnRoute: z.string().optional(),
+      })
+      .parse(req.body);
+
+    // const formData = new FormData();
+    // formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    // formData.append("response", cloudflareToken);
+    // formData.append("remoteip", req.ip!);
+    // const { data: response } = await axios.post(
+    //   "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    //   formData,
+    // );
+    // if (response.success !== true) {
+    //   throw new ClientError("Invalid token. Refresh page.");
+    // }
+    console.log("SLUG", req.slug);
+
+    const [organization, user] = await prisma.$transaction([
+      prisma.organization.findUniqueOrThrow({
+        where: {
+          slug: req.slug,
+        },
+        select: OrganizationSelect,
+      }),
+      prisma.user.upsert({
+        where: {
+          email,
+        },
+        update: {
+          email,
+          organizations: {
+            connect: {
+              slug: req.slug,
+            },
+          },
+        },
+        create: {
+          id: nano_id(),
+          email,
+          emailConfirmed: false,
+          organizations: {
+            connect: {
+              slug: req.slug,
+            },
+          },
+        },
+        select: UserSelect,
+      }),
+    ]);
+
+    const token = jwt.sign(
+      { userId: user.id, organizationId: organization.id },
+      SecretToken.clientRequestLink,
+    );
+
+    try {
+      await resend.emails.send({
+        from: `${organization.title} <no-reply@mail.empleo.work>`,
+        to: [email],
+        subject: `${organization.title} Link`,
+        html: `
+            <div>
+                <p>Click the following link to continue to ${organization.title}:
+                    <a href="https://api.empleo.work/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}">https://api.empleo.work/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}</a>
+                </p>
+            </div>
+            `,
+        text: `Click the following link to continue to ${organization.title}: https://api.empleo.work/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}`,
+      });
+    } catch (error) {
+      console.error("Could not send email", error);
+    }
+    res.json({
+      message: "Account created successfully. Check email for sign link.",
+    });
   }),
 );
 

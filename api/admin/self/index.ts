@@ -1,8 +1,8 @@
 import prisma from "../../../src/utilities/prisma";
 import express from "express";
 import handler from "../../../src/middleware/handler";
-import { EmpleoRequest } from "../../../src/utilities/interfaces";
-import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
+import { AdminRequest } from "../../../src/utilities/interfaces";
+import AuthMiddleware from "../../../src/middleware/admin/AuthMiddleware";
 import { z } from "zod";
 import { SelfSelect } from "../../../src/select/admin";
 
@@ -12,7 +12,7 @@ router.use(AuthMiddleware);
 
 router.get(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const admin = await prisma.admin.findUniqueOrThrow({
       where: {
         id: req.adminId,
@@ -26,7 +26,7 @@ router.get(
 
 router.put(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const data = z
       .object({
         firstName: z.string(),
