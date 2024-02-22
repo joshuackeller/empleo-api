@@ -19,6 +19,7 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   primaryColor: true,
   secondaryColor: true,
   accentColor: true,
+  layout: true,
   description: true,
   longDescription: true,
   createdAt: true,
@@ -39,6 +40,14 @@ export const BaseClientListingSelect: Prisma.ListingSelect = {
   createdAt: true,
   updatedAt: true,
 };
+
+export const BaseUserSelect: Prisma.UserSelect = {
+  id: true,
+  email: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
 export const ClientListingSelect: Prisma.ListingSelect = {
   ...BaseClientListingSelect,
 };
@@ -62,6 +71,11 @@ export const BaseClientApplicationSelect: Prisma.ApplicationSelect = {
   createdAt: true,
   updatedAt: true,
 };
+
 export const ClientApplicationSelect: Prisma.ApplicationSelect = {
   ...BaseClientApplicationSelect,
+};
+
+export const UserSelect: Prisma.UserSelect = {
+  ...BaseUserSelect,
 };
