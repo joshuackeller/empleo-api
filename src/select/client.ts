@@ -29,7 +29,6 @@ export const OrganizationSelect: Prisma.OrganizationSelect = {
   ...BaseOrganizationSelect,
 };
 
-
 export const BaseClientListingSelect: Prisma.ListingSelect = {
   id: true,
   jobTitle: true,
@@ -48,7 +47,35 @@ export const BaseUserSelect: Prisma.UserSelect = {
   createdAt: true,
   updatedAt: true,
 };
+
+export const ClientListingSelect: Prisma.ListingSelect = {
+  ...BaseClientListingSelect,
+};
+
+export const BaseClientApplicationSelect: Prisma.ApplicationSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
+  address: true,
+  city: true,
+  state: true,
+  zip: true,
+  usCitizen: true,
+  workVisa: true,
+  workVisaType: true,
+  language: true,
+  availableStartDate: true,
+  relocate: true,
+  note: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+export const ClientApplicationSelect: Prisma.ApplicationSelect = {
+  ...BaseClientApplicationSelect,
+};
+
 export const UserSelect: Prisma.UserSelect = {
   ...BaseUserSelect,
 };
-
