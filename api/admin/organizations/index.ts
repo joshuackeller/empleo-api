@@ -154,6 +154,7 @@ router.put(
       primaryColor,
       secondaryColor,
       accentColor,
+      layout,
       description,
       longDescription,
     } = z
