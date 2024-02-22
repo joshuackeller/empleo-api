@@ -15,7 +15,6 @@ import {
 } from "../../../src/utilities/domains";
 import { ClientError } from "../../../src/utilities/errors";
 import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
-import bodyParser from "body-parser";
 import { Font } from "@prisma/client";
 import { Layout } from "@prisma/client";
 import axios from "axios";
