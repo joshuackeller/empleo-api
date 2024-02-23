@@ -242,24 +242,24 @@ router.put(
         note,
         relocate,
         userId,
-        resume: resumeId
-          ? {
-              create: {
-                id: resumeId,
-                applicationId: applicationId,
-                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${applicationId}/resumes/${resumeId}`,
-              },
-            }
-          : undefined,
-        coverLetter: coverLetterId
-          ? {
-              create: {
-                id: coverLetterId,
-                applicationId: applicationId,
-                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${applicationId}/coverLetters/${coverLetterId}`,
-              },
-            }
-          : undefined,
+        // resume: resumeId
+        //   ? {
+        //       create: {
+        //         id: resumeId,
+        //         applicationId: applicationId,
+        //         url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${applicationId}/resumes/${resumeId}`,
+        //       },
+        //     }
+        //   : undefined,
+        // coverLetter: coverLetterId
+        //   ? {
+        //       create: {
+        //         id: coverLetterId,
+        //         applicationId: applicationId,
+        //         url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${applicationId}/coverLetters/${coverLetterId}`,
+        //       },
+        //     }
+        //   : undefined,
       },
       select: ApplicationSelect,
     });
