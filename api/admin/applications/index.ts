@@ -60,34 +60,38 @@ router.get(
 router.post(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const { user, ...body } = z
+    const { user } = z
       .object({
         user: z.string(),
         firstName: z.string(),
         lastName: z.string(),
-        phone: z.string().optional(),
-        address: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        zip: z.string().optional(),
-        usCitizen: z.boolean().optional(),
-        workVisa: z.boolean().optional(),
-        workVisaType: z.string().optional(),
-        language: z.string().optional(),
-        availableStartDate: z.string().optional(),
-        note: z.string().optional(),
-        relocate: z.boolean().optional(),
-        resumeUrl: z.string().optional(),
-        coverLetterUrl: z.string().optional(),
+        // phone: z.string().optional(),
+        // address: z.string().optional(),
+        // city: z.string().optional(),
+        // state: z.string().optional(),
+        // zip: z.string().optional(),
+        // usCitizen: z.boolean().optional(),
+        // workVisa: z.boolean().optional(),
+        // workVisaType: z.string().optional(),
+        // language: z.string().optional(),
+        // availableStartDate: z.string().optional(),
+        // note: z.string().optional(),
+        // relocate: z.boolean().optional(),
+        // resumeUrl: z.string().optional(),
+        // coverLetterUrl: z.string().optional(),
       })
       .parse(req.body);
 
     const application = await prisma.application.create({
       data: {
         id: nano_id(),
-        user: user,
-        // organization: { connect: { id: req.organizationId } },
-        ...body,
+        firstName: "firstName",
+        lastName: "lastName",
+        user: {
+          connect: {
+            id: user,
+          },
+        },
       },
       select: ApplicationSelect,
     });
