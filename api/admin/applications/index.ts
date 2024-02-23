@@ -8,6 +8,16 @@ import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
 import { ApplicationSelect } from "../../../src/select/admin";
 import app from "../..";
+import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
+
+const s3 = new S3({
+  region: "us-east-1",
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+  },
+});
+
 
 const router = express.Router();
 
@@ -47,110 +57,232 @@ router.get(
   })
 );
 
-// router.post(
-//   "/",
-//   handler(async (req: AdminRequest, res) => {
-//     const body = z
-//       .object({
-//         firstName: z.string(),
-//         lastName: z.string(),
-//         phone: z.string().optional(),
-//         //gender: z.string().optional(),
-//         address: z.string().optional(),
-//         city: z.string().optional(),
-//         state: z.string().optional(),
-//         zip: z.string().optional(),
-//         usCitizen: z.boolean().optional(),
-//         workVisa: z.boolean().optional(),
-//         workVisaType: z.string().optional(),
-//         language: z.string().optional(),
-//         availableStartDate: z.string().optional(),
-//         note: z.string().optional(),
-//         relocate: z.boolean().optional(),
-//         userId: z.string(),
-//       })
-//       .parse(req.body);
+router.post(
+  "/",
+  handler(async (req: AdminRequest, res) => {
+    const { user, ...body } = z
+      .object({
+        user: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zip: z.string().optional(),
+        usCitizen: z.boolean().optional(),
+        workVisa: z.boolean().optional(),
+        workVisaType: z.string().optional(),
+        language: z.string().optional(),
+        availableStartDate: z.string().optional(),
+        note: z.string().optional(),
+        relocate: z.boolean().optional(),
+        resumeUrl: z.string().optional(),
+        coverLetterUrl: z.string().optional(),
+      })
+      .parse(req.body);
 
-//     const application = await prisma.application.create({
-//       data: {
-//         id: nano_id(),
-//         user: { connect: {
+    const application = await prisma.application.create({
+      data: {
+        id: nano_id(),
+        user: user,
+        // organization: { connect: { id: req.organizationId } },
+        ...body,
+      },
+      select: ApplicationSelect,
+    });
 
-//          } },
+    res.json(application);
+  })
+);
 
-//         // organization: { connect: { id: req.organizationId } },
-//         ...body,
-//       },
-//       select: ApplicationSelect,
-//     });
+// update listing
+router.put(
+  "/:applicationId",
+  handler(async (req: AdminRequest, res) => {
+    const {
+      firstName,
+      lastName,
+      phone,
+      address,
+      city,
+      state,
+      zip,
+      usCitizen,
+      usAuthorized,
+      prevEmployee,
+      nonCompete,
+      olderThan18,
+      race,
+      hispanicOrLatino,
+      veteranStatus,
+      disabilityStatus,
+      workVisa,
+      workVisaType,
+      language,
+      availableStartDate,
+      note,
+      relocate,
+      userId,
+      resumeUrl,
+      coverLetterUrl,
 
-//     res.json(application);
-//   })
-// );
+      } = z
+      .object({
+        firstName: z.string(),
+        lastName: z.string(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zip: z.string().optional(),
+        usCitizen: z.boolean().optional(),
+        usAuthorized: z.boolean().optional(),
+        prevEmployee: z.boolean().optional(),
+        nonCompete: z.boolean().optional(),
+        olderThan18: z.boolean().optional(),
+        race: z.string().optional(),
+        hispanicOrLatino: z.boolean().optional(),
+        veteranStatus: z.string().optional(),
+        disabilityStatus: z.string().optional(),
+        workVisa: z.boolean().optional(),
+        workVisaType: z.string().optional(),
+        language: z.string().optional(),
+        availableStartDate: z.string().optional(),
+        note: z.string().optional(),
+        relocate: z.boolean().optional(),
+        userId: z.string(),
+        resumeUrl: z.string().optional(),
+        coverLetterUrl: z.string().optional(),
+      })
+      .parse(req.body);
 
-// // update listing
-// router.put(
-//   "/:applicationId",
-//   handler(async (req: AdminRequest, res) => {
-//     const data = z
-//       .object({
-//         firstName: z.string(),
-//         lastName: z.string(),
-//         //email: z.string(),
-//         phone: z.string().optional(),
-//         //gender: z.string().optional(),
-//         address: z.string().optional(),
-//         city: z.string().optional(),
-//         state: z.string().optional(),
-//         zip: z.string().optional(),
-//         usCitizen: z.boolean().optional(),
-//         workVisa: z.boolean().optional(),
-//         workVisaType: z.string().optional(),
-//         language: z.string().optional(),
-//         availableStartDate: z.string().optional(),
-//         note: z.string().optional(),
-//         relocate: z.boolean().optional(),
-//         userId: z.string(),
-//       })
-//       .parse(req.body);
+    const { applicationId } = z
+      .object({
+        applicationId: z.string(),
+      })
+      .parse(req.params);
 
-//     const { applicationId } = z
-//       .object({
-//         applicationId: z.string(),
-//       })
-//       .parse(req.params);
+    // const prismaGender = gender as Gender
 
-//     const application = await prisma.application.update({
-//       where: {
-//         id: applicationId,
-//         // organizationId: req.organizationId,
-//       },
-//       data,
-//     });
+    let resumeId;
+    if (resumeUrl) {
+      // Extract Mime and Buffer from dataUrl
+      const mime = resumeUrl?.split(":")[1].split(";")[0];
+      const base64 = resumeUrl?.split(",")[1];
+      const buffer = Buffer.from(base64, "base64");
 
-//     res.json(application);
-//   })
-// );
+      resumeId = nano_id();
+      // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
+      const fileKey = `${applicationId}/resumes/${resumeId}`;
 
-// //Delete Listing
-// router.delete(
-//   "/:applicationId",
-//   handler(async (req: AdminRequest, res) => {
-//     const { applicationId } = z
-//       .object({
-//         applicationId: z.string(),
-//       })
-//       .parse(req.params);
+      // Upload the image to S3
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.S3_BUCKET_NAME!,
+          Body: buffer,
+          ContentType: mime,
+          Key: fileKey,
+        })
+      );
+    }
 
-//     const application = await prisma.application.delete({
-//       where: {
-//         id: applicationId,
-//         // organizationId: req.organizationId,
-//       },
-//       select: ApplicationSelect,
-//     });
+    let coverLetterId;
+    if (coverLetterUrl) {
+      // Extract Mime and Buffer from dataUrl
+      const mime = coverLetterUrl?.split(":")[1].split(";")[0];
+      const base64 = coverLetterUrl?.split(",")[1];
+      const buffer = Buffer.from(base64, "base64");
 
-//     res.json(application);
-//   })
-// );
+      coverLetterId = nano_id();
+      // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
+      const fileKey = `${applicationId}/coverLetters/${coverLetterId}`;
+
+      // Upload the image to S3
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: process.env.S3_BUCKET_NAME!,
+          Body: buffer,
+          ContentType: mime,
+          Key: fileKey,
+        })
+      );
+    }
+
+    const application = await prisma.application.update({
+      where: {
+        id: applicationId,
+        // organizationId: req.organizationId,
+      },
+      data: {
+        firstName,
+        lastName,
+        phone,
+        address,
+        city,
+        state,
+        zip,
+        usCitizen,
+        usAuthorized,
+        prevEmployee,
+        nonCompete,
+        olderThan18,
+        race,
+        hispanicOrLatino,
+        veteranStatus,
+        disabilityStatus,
+        workVisa,
+        workVisaType,
+        language,
+        availableStartDate,
+        note,
+        relocate,
+        userId,
+        resume: resumeId
+          ? {
+              create: {
+                id: resumeId,
+                applicationId: applicationId,
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${applicationId}/resumes/${resumeId}`,
+              },
+            }
+          : undefined,
+        coverLetter: coverLetterId
+          ? {
+              create: {
+                id: coverLetterId,
+                applicationId: applicationId,
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${applicationId}/coverLetters/${coverLetterId}`,
+              },
+            }
+          : undefined,
+      },
+      select: ApplicationSelect,
+    });
+
+    res.json(application);
+  })
+);
+
+//Delete Listing
+router.delete(
+  "/:applicationId",
+  handler(async (req: AdminRequest, res) => {
+    const { applicationId } = z
+      .object({
+        applicationId: z.string(),
+      })
+      .parse(req.params);
+
+    const application = await prisma.application.delete({
+      where: {
+        id: applicationId,
+        // organizationId: req.organizationId,
+      },
+      select: ApplicationSelect,
+    });
+
+    res.json(application);
+  })
+);
 export default router;
