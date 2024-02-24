@@ -17,7 +17,6 @@ const router = express.Router();
 router.get(
   "/",
   handler(async (req: ClientRequest, res) => {
-    console.log(req.headers.organization);
     const Listings = await prisma.listing.findMany({
       where: {
         organization: { slug: req.headers.organization as string },

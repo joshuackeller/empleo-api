@@ -47,6 +47,7 @@ model Organization {
     description     String?   @map("description")
     longDescription String?   @map("long_description")
     layout          Layout    @default(one) @map("layout")
+    files           File[]    @relation("OrganizationFiles")
 
     @@map("organization")
 }
@@ -102,6 +103,8 @@ model Listing {
     createdAt       DateTime      @default(now()) @map("created_at")
     updatedAt       DateTime      @updatedAt @map("updated_at")
     Application     Application[]
+    // Resume          File[]   @relation("ResumeRelation")
+    // CoverLetter     File[]   @relation("CoverLetterRelation")
 
     @@unique([organizationId, id])
     @@index([organizationId])
@@ -126,33 +129,43 @@ enum Status {
 }
 
 model Application {
-    id                 String            @id
-    organizationId     String?           @map("organization_id")
-    listingId          String?           @map("listing_id")
-    listing            Listing?          @relation(fields: [organizationId, listingId], references: [organizationId, id], onDelete: Cascade, onUpdate: Cascade)
-    userId             String            @map("user_id")
-    user               User              @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    firstName          String            @map("first_name")
-    lastName           String            @map("last_name")
-    phone              String?           @map("phone")
-    gender             Gender            @default(prefer_not_to_say) @map("gender")
-    address            String?           @map("address")
-    city               String?           @map("city")
-    state              String?           @map("state")
-    zip                String?           @map("zip")
-    usCitizen          Boolean           @default(false) @map("us_citizen")
-    workVisa           Boolean           @default(false) @map("work_visa")
-    workVisaType       String?           @map("work_visa_type")
-    language           String?           @map("language")
-    availableStartDate DateTime?         @map("available_start_date")
-    note               String?           @map("note")
-    relocate           Boolean           @default(false)
-    // resumeLink         String?   @map("resume_link")
-    // coverLetter        String?   @map("cover_letter")
-    status             Status            @default(new) @map("status")
-    notes              ApplicationNote[]
-    createdAt          DateTime          @default(now()) @map("created_at")
-    updatedAt          DateTime          @updatedAt @map("updated_at")
+    id                 String    @id
+    organizationId     String?   @map("organization_id")
+    listingId          String?   @map("listing_id")
+    listing            Listing?  @relation(fields: [organizationId, listingId], references: [organizationId, id], onDelete: Cascade, onUpdate: Cascade)
+    userId             String    @map("user_id")
+    user               User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    firstName          String    @map("first_name")
+    lastName           String    @map("last_name")
+    phone              String?   @map("phone")
+    gender             Gender    @default(prefer_not_to_say) @map("gender")
+    address            String?   @map("address")
+    city               String?   @map("city")
+    state              String?   @map("state")
+    zip                String?   @map("zip")
+    usCitizen          Boolean   @default(false) @map("us_citizen")
+    usAuthorized       Boolean   @default(false) @map("us_authorized")
+    prevEmployee       Boolean   @default(false) @map("prev_employee")
+    nonCompete         Boolean   @default(false) @map("non_compete")
+    olderThan18        Boolean   @default(false) @map("older_than_18")
+    race               String?   @map("race")
+    hispanicOrLatino   Boolean   @default(false) @map("hispanic_or_latino")
+    veteranStatus      String?   @map("veteran_status")
+    disabilityStatus   String?   @map("disability_status")
+    workVisa           Boolean   @default(false) @map("work_visa")
+    workVisaType       String?   @map("work_visa_type")
+    language           String?   @map("language")
+    availableStartDate DateTime? @map("available_start_date")
+    note               String?   @map("note")
+    relocate           Boolean   @default(false)
+    resumeId           String?   @unique @map("resume_id")
+    resume             File?     @relation("ApplicationResume", fields: [resumeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    coverLetterId      String?   @unique @map("cover_letter_id")
+    coverLetter        File?     @relation("ApplicationCoverLetter", fields: [coverLetterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+    createdAt       DateTime          @default(now()) @map("created_at")
+    updatedAt       DateTime          @updatedAt @map("updated_at")
+    ApplicationNote ApplicationNote[]
 
     @@unique([organizationId, id])
     @@unique([organizationId, listingId, id])
@@ -191,4 +204,20 @@ model Image {
     @@unique([organizationId, id])
     @@index([organizationId])
     @@map("image")
+}
+
+model File {
+    id                     String       @id
+    organizationId         String       @map("organization_id")
+    organization           Organization @relation("OrganizationFiles", fields: [organizationId], references: [id])
+    url                    String
+    applicationResume      Application? @relation("ApplicationResume")
+    applicationCoverLetter Application? @relation("ApplicationCoverLetter")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@unique([organizationId, id])
+    @@index([organizationId])
+    @@map("file")
 }
