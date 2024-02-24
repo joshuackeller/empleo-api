@@ -53,16 +53,17 @@ model Organization {
 }
 
 model Admin {
-    id             String         @id
-    firstName      String         @map("first_name")
-    lastName       String?        @map("last_name")
-    email          String         @unique
-    emailConfirmed Boolean        @default(false) @map("email_confirmed")
-    selfCreated    Boolean        @default(false) @map("self_created")
-    createdAt      DateTime       @default(now()) @map("created_at")
-    updatedAt      DateTime       @updatedAt @map("updated_at")
+    id             String            @id
+    firstName      String            @map("first_name")
+    lastName       String?           @map("last_name")
+    email          String            @unique
+    emailConfirmed Boolean           @default(false) @map("email_confirmed")
+    selfCreated    Boolean           @default(false) @map("self_created")
+    createdAt      DateTime          @default(now()) @map("created_at")
+    updatedAt      DateTime          @updatedAt @map("updated_at")
     password       Password?
     organizations  Organization[]
+    notes          ApplicationNote[]
 
     @@map("admin")
 }
@@ -117,6 +118,16 @@ enum Gender {
     other
 }
 
+enum Status {
+    new
+    in_review
+    interview
+    offer_pending
+    offer_accepted
+    offer_rejected
+    rejected
+}
+
 model Application {
     id                 String    @id
     organizationId     String?   @map("organization_id")
@@ -152,13 +163,31 @@ model Application {
     coverLetterId      String?   @unique @map("cover_letter_id")
     coverLetter        File?     @relation("ApplicationCoverLetter", fields: [coverLetterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
+    createdAt       DateTime          @default(now()) @map("created_at")
+    updatedAt       DateTime          @updatedAt @map("updated_at")
+    ApplicationNote ApplicationNote[]
 
+    @@unique([organizationId, id])
     @@unique([organizationId, listingId, id])
     @@unique([organizationId, listingId, userId])
     @@index([organizationId, listingId])
     @@map("application")
+}
+
+model ApplicationNote {
+    id             String      @id
+    organizationId String
+    applicationId  String
+    application    Application @relation(fields: [organizationId, applicationId], references: [organizationId, id], onDelete: Cascade, onUpdate: Cascade)
+    text           String
+    adminId        String      @map("admin_id")
+    admin          Admin       @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    createdAt      DateTime    @default(now()) @map("created_at")
+    updatedAt      DateTime    @updatedAt @map("updated_at")
+
+    @@unique([organizationId, id])
+    @@unique([organizationId, applicationId, id])
+    @@index([organizationId, applicationId])
 }
 
 model Image {
@@ -168,8 +197,9 @@ model Image {
     url                String
     organizationLogo   Organization? @relation("LogoRelation")
     organizationBanner Organization? @relation("BannerRelation")
-    createdAt          DateTime      @default(now()) @map("created_at")
-    updatedAt          DateTime      @updatedAt @map("updated_at")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@unique([organizationId, id])
     @@index([organizationId])
