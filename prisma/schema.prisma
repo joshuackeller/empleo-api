@@ -47,6 +47,7 @@ model Organization {
     description     String?   @map("description")
     longDescription String?   @map("long_description")
     layout          Layout    @default(one) @map("layout")
+    files           File[]    @relation("OrganizationFiles")
 
     @@map("organization")
 }
@@ -131,7 +132,6 @@ model Application {
     city               String?   @map("city")
     state              String?   @map("state")
     zip                String?   @map("zip")
-    files              File[]    @relation("ApplicationFiles")
     usCitizen          Boolean   @default(false) @map("us_citizen")
     usAuthorized       Boolean   @default(false) @map("us_authorized")
     prevEmployee       Boolean   @default(false) @map("prev_employee")
@@ -148,9 +148,9 @@ model Application {
     note               String?   @map("note")
     relocate           Boolean   @default(false)
     resumeId           String?   @unique @map("resume_id")
-    resume             File?     @relation("ResumeRelation", fields: [resumeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    resume             File?     @relation("ApplicationResume", fields: [resumeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     coverLetterId      String?   @unique @map("cover_letter_id")
-    coverLetter        File?     @relation("CoverLetterRelation", fields: [coverLetterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    coverLetter        File?     @relation("ApplicationCoverLetter", fields: [coverLetterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
@@ -168,9 +168,8 @@ model Image {
     url                String
     organizationLogo   Organization? @relation("LogoRelation")
     organizationBanner Organization? @relation("BannerRelation")
-
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
+    createdAt          DateTime      @default(now()) @map("created_at")
+    updatedAt          DateTime      @updatedAt @map("updated_at")
 
     @@unique([organizationId, id])
     @@index([organizationId])
@@ -179,16 +178,16 @@ model Image {
 
 model File {
     id                     String       @id
-    applicationId          String       @map("application_id")
-    application            Application  @relation("ApplicationFiles", fields: [applicationId], references: [id])
+    organizationId         String       @map("organization_id")
+    organization           Organization @relation("OrganizationFiles", fields: [organizationId], references: [id])
     url                    String
-    applicationResume      Application? @relation("ResumeRelation")
-    applicationCoverLetter Application? @relation("CoverLetterRelation")
+    applicationResume      Application? @relation("ApplicationResume")
+    applicationCoverLetter Application? @relation("ApplicationCoverLetter")
 
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
-    @@unique([applicationId, id])
-    @@index([applicationId])
+    @@unique([organizationId, id])
+    @@index([organizationId])
     @@map("file")
 }
