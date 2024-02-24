@@ -12,4 +12,5 @@ export interface AdminRequest extends Request {
 export interface ClientRequest extends Request {
   userId?: string;
   slug?: string;
+  organizationId?: string;
 }
