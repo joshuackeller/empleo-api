@@ -9,6 +9,10 @@ export interface AdminRequest extends Request {
   organizationId?: string;
 }
 
+export type ClientJWTObject = {
+  userId: string;
+};
+
 export interface ClientRequest extends Request {
   userId?: string;
   slug?: string;

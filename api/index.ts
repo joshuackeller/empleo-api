@@ -16,6 +16,7 @@ import admin_applications from "./admin/applications";
 import client_organizations from "./client/organizations";
 import client_auth from "./client/auth";
 import client_listings from "./client/listings";
+import client_applications from "./client/applications";
 
 const app = express();
 
@@ -59,6 +60,7 @@ app.use("/admin/applications", admin_applications);
 app.use("/client/auth", client_auth);
 app.use("/client/organizations", client_organizations);
 app.use("/client/listings", client_listings);
+app.use("/client/applications", client_applications);
 
 app.use(ErrorHandler);
 
