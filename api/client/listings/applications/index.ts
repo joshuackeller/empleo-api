@@ -4,10 +4,9 @@ import AuthMiddleware from "../../../../src/middleware/client/AuthMiddleware";
 import OrgMiddleware from "../../../../src/middleware/client/OrgMiddleware";
 import handler from "../../../../src/middleware/handler";
 import { ClientRequest } from "../../../../src/utilities/interfaces";
-import prisma from "../../../../src/utilities/prisma";
-import { ApplicationSelect } from "../../../../src/select/client";
 import nano_id from "../../../../src/utilities/nano_id";
 import UploadToS3 from "../../../../src/utilities/UploadToS3";
+import prisma from "../../../../src/utilities/prisma";
 
 const router = express.Router();
 
@@ -35,8 +34,6 @@ router.post(
         workVisaType: z.string().optional(),
         language: z.string().optional(),
         note: z.string().optional(),
-        resumeId: z.string().optional(),
-        coverLetterId: z.string().optional(),
         usCitizen: z.boolean().optional(),
         usAuthorized: z.boolean().optional(),
         prevEmployee: z.boolean().optional(),
@@ -49,7 +46,7 @@ router.post(
         resume: z.any(),
         coverLetter: z.any(),
       })
-      .parse(req.params);
+      .parse(req.body);
 
     const { id: organizationId } = await prisma.organization.findUniqueOrThrow({
       where: { slug: req.slug },
@@ -66,11 +63,33 @@ router.post(
       await UploadToS3(resume, organizationId, coverLetterKey);
     }
 
-    const application = prisma.application.create({
+    const application = await prisma.application.create({
       data: {
-        user: { connect: { id: req.userId } },
-        id: nano_id(),
         ...body,
+        id: nano_id(),
+        listing: {
+          connect: {
+            organizationId_id: {
+              organizationId,
+              id: listingId,
+            },
+          },
+        },
+        user: {
+          connect: {
+            id: req.userId,
+          },
+        },
+        resume: {
+          connect: {
+            id: resumeId,
+          },
+        },
+        coverLetter: {
+          connect: {
+            id: coverLetterId,
+          },
+        },
       },
     });
 
