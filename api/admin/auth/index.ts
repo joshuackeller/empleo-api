@@ -36,7 +36,7 @@ router.post(
 
     const { data: response } = await axios.post(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData,
+      formData
     );
 
     if (response.success !== true) {
@@ -85,7 +85,7 @@ router.post(
 
       const token = jwt.sign(
         { adminId: admin.id },
-        SecretToken.confirm_account,
+        SecretToken.confirm_account
       );
       try {
         await resend.emails.send({
@@ -107,7 +107,7 @@ router.post(
           "Account created successfully. Confirm email before signing in.",
       });
     }
-  }),
+  })
 );
 
 router.get(
@@ -138,7 +138,7 @@ router.get(
           (error as any)?.message || "Something went wrong. Please try again.",
       });
     }
-  }),
+  })
 );
 
 router.post(
@@ -160,7 +160,7 @@ router.post(
 
     const { data: response } = await axios.post(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData,
+      formData
     );
 
     if (response.success !== true) {
@@ -179,7 +179,7 @@ router.post(
       }
       const token = jwt.sign(
         { adminId: admin.id },
-        SecretToken.confirm_account,
+        SecretToken.confirm_account
       );
       try {
         await resend.emails.send({
@@ -202,10 +202,10 @@ router.post(
     } else {
       throw new ClientError(
         "No account with this email was found. Please create a new account",
-        400,
+        400
       );
     }
-  }),
+  })
 );
 
 router.post(
@@ -228,7 +228,7 @@ router.post(
 
     const { data: response } = await axios.post(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData,
+      formData
     );
 
     if (response.success !== true) {
@@ -246,7 +246,7 @@ router.post(
           password: true,
         },
       });
-    } catch {
+    } catch (error) {
       throw new ClientError("Could not find an account with this email");
     }
     if (!admin.emailConfirmed) {
@@ -266,7 +266,7 @@ router.post(
     } else {
       throw new ClientError("Incorrect email or password", 403);
     }
-  }),
+  })
 );
 
 router.post(
@@ -288,7 +288,7 @@ router.post(
 
     const { data: response } = await axios.post(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData,
+      formData
     );
 
     if (response.success !== true) {
@@ -312,7 +312,7 @@ router.post(
       SecretToken.reset_password,
       {
         expiresIn: "1hr",
-      },
+      }
     );
     const link = `${process.env.WEBSITE_URL}/auth/reset_password?token=${token}`;
     try {
@@ -333,7 +333,7 @@ router.post(
     res.json({
       message: "Email sent successfully",
     });
-  }),
+  })
 );
 
 router.post(
@@ -374,7 +374,7 @@ router.post(
       }
       throw new ClientError(message);
     }
-  }),
+  })
 );
 
 export default router;
