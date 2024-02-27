@@ -60,9 +60,8 @@ router.get(
 router.post(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const { user } = z
+    const body = z
       .object({
-        user: z.string(),
         firstName: z.string(),
         lastName: z.string(),
         // phone: z.string().optional(),
@@ -84,14 +83,14 @@ router.post(
 
     const application = await prisma.application.create({
       data: {
+        
         id: nano_id(),
-        firstName: "firstName",
-        lastName: "lastName",
         user: {
           connect: {
             id: user,
           },
         },
+        ...body
       },
       select: ApplicationSelect,
     });
