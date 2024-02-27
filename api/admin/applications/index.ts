@@ -18,7 +18,6 @@ const s3 = new S3({
   },
 });
 
-
 const router = express.Router();
 
 router.use(AuthMiddleware);
@@ -130,8 +129,7 @@ router.put(
       userId,
       resumeUrl,
       coverLetterUrl,
-
-      } = z
+    } = z
       .object({
         firstName: z.string(),
         lastName: z.string(),

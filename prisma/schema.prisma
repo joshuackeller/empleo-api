@@ -163,9 +163,10 @@ model Application {
     coverLetterId      String?   @unique @map("cover_letter_id")
     coverLetter        File?     @relation("ApplicationCoverLetter", fields: [coverLetterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-    createdAt       DateTime          @default(now()) @map("created_at")
-    updatedAt       DateTime          @updatedAt @map("updated_at")
-    ApplicationNote ApplicationNote[]
+    createdAt         DateTime          @default(now()) @map("created_at")
+    updatedAt         DateTime          @updatedAt @map("updated_at")
+    applicataionNotes ApplicationNote[]
+    status            Status            @default(new) @map("status")
 
     @@unique([organizationId, id])
     @@unique([organizationId, listingId, id])
