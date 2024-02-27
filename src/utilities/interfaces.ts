@@ -16,4 +16,5 @@ export type ClientJWTObject = {
 export interface ClientRequest extends Request {
   userId?: string;
   slug?: string;
+  organizationId?: string;
 }

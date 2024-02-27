@@ -63,12 +63,30 @@ export const BaseClientApplicationSelect: Prisma.ApplicationSelect = {
   state: true,
   zip: true,
   usCitizen: true,
+  usAuthorized: true,
+  prevEmployee: true,
+  nonCompete: true,
+  olderThan18: true,
+  race: true,
+  hispanicOrLatino: true,
+  veteranStatus: true,
+  disabilityStatus: true,
   workVisa: true,
   workVisaType: true,
   language: true,
   availableStartDate: true,
   relocate: true,
   note: true,
+  resume: {
+    select: {
+      url: true,
+    },
+  },
+  coverLetter: {
+    select: {
+      url: true,
+    },
+  },
   createdAt: true,
   updatedAt: true,
 };

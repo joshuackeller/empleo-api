@@ -60,6 +60,7 @@ app.use("/admin/applications", admin_applications);
 app.use("/client/auth", client_auth);
 app.use("/client/organizations", client_organizations);
 app.use("/client/listings", client_listings);
+app.use("/client/listings/:listingId/applications", client_applications);
 app.use("/client/applications", client_applications);
 
 app.use(ErrorHandler);
