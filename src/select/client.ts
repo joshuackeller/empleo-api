@@ -53,7 +53,7 @@ export const BaseUserSelect: Prisma.UserSelect = {
   updatedAt: true,
 };
 
-export const BaseClientApplicationSelect: Prisma.ApplicationSelect = {
+export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   id: true,
   firstName: true,
   lastName: true,
@@ -91,8 +91,8 @@ export const BaseClientApplicationSelect: Prisma.ApplicationSelect = {
   updatedAt: true,
 };
 
-export const ClientApplicationSelect: Prisma.ApplicationSelect = {
-  ...BaseClientApplicationSelect,
+export const ApplicationSelect: Prisma.ApplicationSelect = {
+  ...BaseApplicationSelect,
 };
 
 export const UserSelect: Prisma.UserSelect = {

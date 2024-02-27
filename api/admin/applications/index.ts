@@ -7,17 +7,6 @@ import { z } from "zod";
 import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
 import { ApplicationSelect } from "../../../src/select/admin";
-import app from "../..";
-import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
-
-const s3 = new S3({
-  region: "us-east-1",
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY!,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-  },
-});
-
 
 const router = express.Router();
 
@@ -57,6 +46,7 @@ router.get(
   })
 );
 
+<<<<<<< Updated upstream
 router.post(
   "/",
   handler(async (req: AdminRequest, res) => {
@@ -268,6 +258,8 @@ router.put(
   })
 );
 
+=======
+>>>>>>> Stashed changes
 //Delete Listing
 router.delete(
   "/:applicationId",
