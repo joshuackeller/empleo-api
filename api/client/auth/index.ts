@@ -36,7 +36,7 @@ router.get(
 
       const { organizationId, userId } = jwt.verify(
         token,
-        SecretToken.clientRequestLink,
+        SecretToken.clientRequestLink
       ) as { organizationId: string; userId: string };
 
       let user;
@@ -57,7 +57,7 @@ router.get(
 
       const newToken = jwt.sign(
         { userId: user.id, organizationId: organization.id },
-        SecretToken.clientAuth,
+        SecretToken.clientAuth
       );
 
       WEBSITE_URL =
@@ -66,7 +66,7 @@ router.get(
           : `http://${organization.slug}.localhost:3000`;
 
       res.redirect(
-        `${WEBSITE_URL}/token?token=${newToken}&returnRoute=${returnRoute}`,
+        `${WEBSITE_URL}/token?token=${newToken}&returnRoute=${returnRoute}`
       );
     } catch {
       if (!!organization && !!organization.slug) {
@@ -80,7 +80,7 @@ router.get(
             `);
       }
     }
-  }),
+  })
 );
 
 router.use(OrgMiddleware);
@@ -104,7 +104,7 @@ router.post(
     formData.append("remoteip", req.ip!);
     const { data: response } = await axios.post(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData,
+      formData
     );
     if (response.success !== true) {
       throw new ClientError("Invalid token. Refresh page.");
@@ -145,7 +145,7 @@ router.post(
 
     const token = jwt.sign(
       { userId: user.id, organizationId: organization.id },
-      SecretToken.clientRequestLink,
+      SecretToken.clientRequestLink
     );
 
     try {
@@ -168,7 +168,7 @@ router.post(
     res.json({
       message: "Account created successfully. Check email for sign link.",
     });
-  }),
+  })
 );
 
 export default router;

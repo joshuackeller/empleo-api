@@ -4,20 +4,35 @@ import handler from "../../../src/middleware/handler";
 import { z } from "zod";
 import { ClientRequest } from "../../../src/utilities/interfaces";
 import { ListingSelect } from "../../../src/select/client";
+import OrgMiddleware from "../../../src/middleware/client/OrgMiddleware";
 
 const router = express.Router();
+
+router.use(OrgMiddleware);
 
 router.get(
   "/",
   handler(async (req: ClientRequest, res) => {
-    const Listings = await prisma.listing.findMany({
+    const { search } = z
+      .object({ search: z.string().optional() })
+      .parse(req.query);
+
+    const listings = await prisma.listing.findMany({
       where: {
-        organization: { slug: req.headers.organization as string },
+        organization: { slug: req.slug },
         published: true,
+        OR: search
+          ? [
+              { jobTitle: { contains: search, mode: "insensitive" } },
+              { jobDescription: { contains: search, mode: "insensitive" } },
+              { jobDescription: { contains: search, mode: "insensitive" } },
+              { location: { contains: search, mode: "insensitive" } },
+            ]
+          : undefined,
       },
       select: ListingSelect,
     });
-    res.json(Listings);
+    res.json(listings);
   })
 );
 
