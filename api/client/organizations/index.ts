@@ -1,7 +1,7 @@
 import prisma from "../../../src/utilities/prisma";
 import express from "express";
 import handler from "../../../src/middleware/handler";
-import { EmpleoRequest } from "../../../src/utilities/interfaces";
+import { AdminRequest } from "../../../src/utilities/interfaces";
 import { z } from "zod";
 import { OrganizationSelect } from "../../../src/select/client";
 import { Redis } from "@upstash/redis";
@@ -16,12 +16,22 @@ const router = express.Router();
 
 router.get(
   "/:slug",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { slug } = z
       .object({
         slug: z.string(),
       })
       .parse(req.params);
+
+    // const thisSlug = req.headers.organization;
+
+    // await prisma.listing.findMany({
+    //   where: {
+    //     organization: {
+    //       slug: thisSlug,
+    //     }
+    //   }
+    // })
 
     const orgKey = RedisKeys.organizationBySlug(slug);
 
@@ -37,7 +47,7 @@ router.get(
       redis.set(orgKey, organization);
     }
     res.json(organization);
-  }),
+  })
 );
 
 export default router;

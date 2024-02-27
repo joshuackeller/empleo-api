@@ -1,10 +1,10 @@
 import prisma from "../../../src/utilities/prisma";
 import express, { NextFunction, Response } from "express";
 import handler from "../../../src/middleware/handler";
-import { EmpleoRequest } from "../../../src/utilities/interfaces";
-import AuthMiddleware from "../../../src/middleware/AuthMiddleware";
+import { AdminRequest } from "../../../src/utilities/interfaces";
+import AuthMiddleware from "../../../src/middleware/admin/AuthMiddleware";
 import { z } from "zod";
-import OrgMiddleware from "../../../src/middleware/OrgMiddleware";
+import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
 import { AdminSelect } from "../../../src/select/admin";
 
@@ -23,7 +23,7 @@ router.use(OrgMiddleware);
 
 router.get(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const admins = await prisma.admin.findMany({
       where: {
         organizations: {
@@ -35,12 +35,12 @@ router.get(
       select: AdminSelect,
     });
     res.json(admins);
-  }),
+  })
 );
 
 router.get(
   "/:adminId",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { adminId } = z
       .object({
         adminId: z.string(),
@@ -59,12 +59,12 @@ router.get(
       select: AdminSelect,
     });
     res.json(admin);
-  }),
+  })
 );
 
 router.post(
   "/",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { email } = z
       .object({
         email: z.string().email(),
@@ -98,12 +98,12 @@ router.post(
     });
 
     res.json(admin);
-  }),
+  })
 );
 
 router.delete(
   "/:adminId",
-  handler(async (req: EmpleoRequest, res) => {
+  handler(async (req: AdminRequest, res) => {
     const { adminId } = z
       .object({
         adminId: z.string(),
@@ -132,12 +132,12 @@ router.delete(
     // Expire current redis admin org key
     const admin_org_key = RedisKeys.adminOrganization(
       adminId,
-      req.headers.organization as string,
+      req.headers.organization as string
     );
     redis.expire(admin_org_key, 0);
 
     res.json(admin);
-  }),
+  })
 );
 
 export default router;

@@ -1,270 +1,160 @@
-// import { Hono } from "hono";
-// import { setCookie } from "hono/cookie";
-// import prisma from "@src/utilities/prismaClient";
-// import { z } from "zod";
-// import bcrypt from "bcryptjs";
-// const jwt = require("jsonwebtoken");
-// import { Resend } from "resend";
-// import SecretToken from "@src/utilities/SecretToken";
-// import { ClientError } from "@src/utilities/errors";
-// import { handle } from "hono/vercel";
-// import nano_id from "@src/utilities/nano_id";
-// import { cors } from "hono/cors";
+import prisma from "../../../src/utilities/prisma";
+import { z } from "zod";
+import { Resend } from "resend";
+import SecretToken from "../../../src/utilities/SecretToken";
+import nano_id from "../../../src/utilities/nano_id";
+import jwt from "jsonwebtoken";
+import express from "express";
+import handler from "../../../src/middleware/handler";
+import { ClientRequest } from "../../../src/utilities/interfaces";
+import { OrganizationSelect, UserSelect } from "../../../src/select/client";
+import OrgMiddleware from "../../../src/middleware/client/OrgMiddleware";
+const resend = new Resend(process.env.RESEND_KEY);
 
-// export const config = {
-//   runtime: "edge",
-// };
+const router = express.Router();
 
-// const resend = new Resend(process.env.RESEND_KEY);
+router.get(
+  "/confirm_account",
+  handler(async (req, res) => {
+    let organization;
+    try {
+      const { token, returnRoute } = z
+        .object({
+          token: z.string(),
+          returnRoute: z.string(),
+        })
+        .parse(req.query);
 
-// const SALT_ROUNDS = 15;
+      const { organizationId, userId } = jwt.verify(
+        token,
+        SecretToken.clientRequestLink,
+      ) as { organizationId: string; userId: string };
 
-// const api = new Hono().basePath("/api");
+      let user;
+      [organization, user] = await prisma.$transaction([
+        prisma.organization.findUniqueOrThrow({
+          where: {
+            id: organizationId,
+          },
+          select: OrganizationSelect,
+        }),
+        prisma.user.findUniqueOrThrow({
+          where: {
+            id: userId,
+          },
+          select: UserSelect,
+        }),
+      ]);
 
-// api.use("*", cors());
+      const newToken = jwt.sign(
+        { userId: user.id, organizationId: organization.id },
+        SecretToken.clientAuth,
+      );
 
-// api.get("/confirm", async (c) => {
-//   const { token } = z
-//     .object({
-//       token: z.string(),
-//     })
-//     .parse(c.req.query());
+      res.redirect(
+        `https://${organization.slug}.empleo.work/token?token=${newToken}&returnRoute=${returnRoute}`,
+      );
+    } catch {
+      if (!!organization && !!organization.slug) {
+        res.redirect(`https://${organization.slug}.empleo.work/auth_error`);
+      } else {
+        res.send(`
+            <div>
+                <h2>Error</h2>
+                <p>Link expired. Please request a new link</p>
+            </div>
+            `);
+      }
+    }
+  }),
+);
 
-//   try {
-//     jwt.verify(token, SecretToken.confirm_account);
-//     const { userId } = jwt.decode(token) as any;
+router.use(OrgMiddleware);
 
-//     await prisma.user.update({
-//       where: {
-//         id: userId,
-//       },
-//       data: {
-//         emailConfirmed: true,
-//       },
-//     });
+router.post(
+  "/request_link",
+  handler(async (req: ClientRequest, res) => {
+    const { email, returnRoute } = z
+      .object({
+        email: z.string().email().toLowerCase(),
+        // cloudflareToken: z.string({
+        //   required_error: "No Cloudflare Token Provided",
+        // }),
+        returnRoute: z.string().optional(),
+      })
+      .parse(req.body);
 
-//     return c.redirect(
-//       `${process.env.WEBSITE_URL}/recipes?authFlow=confirm_success`
-//     );
-//   } catch {
-//     return c.redirect(
-//       `${process.env.WEBSITE_URL}/recipes?authFlow=confirm_error`
-//     );
-//   }
-// });
+    // const formData = new FormData();
+    // formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    // formData.append("response", cloudflareToken);
+    // formData.append("remoteip", req.ip!);
+    // const { data: response } = await axios.post(
+    //   "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    //   formData,
+    // );
+    // if (response.success !== true) {
+    //   throw new ClientError("Invalid token. Refresh page.");
+    // }
 
-// api.post("/resend", async (c) => {
-//   const { email } = await z
-//     .object({
-//       email: z.string().email(),
-//     })
-//     .parseAsync(await c.req.parseBody());
+    const [organization, user] = await prisma.$transaction([
+      prisma.organization.findUniqueOrThrow({
+        where: {
+          slug: req.slug,
+        },
+        select: OrganizationSelect,
+      }),
+      prisma.user.upsert({
+        where: {
+          email,
+        },
+        update: {
+          email,
+          organizations: {
+            connect: {
+              slug: req.slug,
+            },
+          },
+        },
+        create: {
+          id: nano_id(),
+          email,
+          emailConfirmed: false,
+          organizations: {
+            connect: {
+              slug: req.slug,
+            },
+          },
+        },
+        select: UserSelect,
+      }),
+    ]);
 
-//   const user = await prisma.user.findUnique({
-//     where: {
-//       email,
-//     },
-//   });
-//   if (!!user) {
-//     const token = jwt.sign({ userId: user.id }, SecretToken.confirm_account);
-//     try {
-//       await resend.emails.send({
-//         from: "Empleo <no-reply@mail.joshkeller.info>",
-//         to: [email],
-//         subject: "Confirm Email",
-//         html: `
-//             <div>
-//                 <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/auth/confirm?token=${token}"> ${process.env.API_URL}/auth/confirm?token=${token}</a></p>
-//             </div>
-//             `,
-//         text: `Click the following link to confirm your email: ${process.env.API_URL}/auth/confirm?token=${token}`,
-//       });
-//     } catch (error) {
-//       console.error(error);
-//     }
-//     return c.json({
-//       message: "Email sent successfully",
-//     });
-//   } else {
-//     throw new ClientError(
-//       "No account with this email was found. Please create a new account",
-//       400
-//     );
-//   }
-// });
+    const token = jwt.sign(
+      { userId: user.id, organizationId: organization.id },
+      SecretToken.clientRequestLink,
+    );
 
-// api.post("/create_account", async (c) => {
-//   const { email, firstName, lastName, password } = await z
-//     .object({
-//       email: z.string().email(),
-//       firstName: z.string(),
-//       lastName: z.string(),
-//       password: z.string().min(8, "Password must be 8 characters or more "),
-//     })
-//     .parseAsync(await c.req.parseBody());
+    try {
+      await resend.emails.send({
+        from: `${organization.title} <no-reply@mail.empleo.work>`,
+        to: [email],
+        subject: `${organization.title} Link`,
+        html: `
+            <div>
+                <p>Click the following link to continue to ${organization.title}:
+                    <a href="https://api.empleo.work/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}">https://api.empleo.work/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}</a>
+                </p>
+            </div>
+            `,
+        text: `Click the following link to continue to ${organization.title}: https://api.empleo.work/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}`,
+      });
+    } catch (error) {
+      console.error("Could not send email", error);
+    }
+    res.json({
+      message: "Account created successfully. Check email for sign link.",
+    });
+  }),
+);
 
-//   let user = await prisma.user.findUnique({
-//     where: { email },
-//   });
-
-//   if (!!user) {
-//     throw new ClientError("Email already in use");
-//   } else {
-//     const hash = await bcrypt.hash(password, SALT_ROUNDS);
-
-//     user = await prisma.user.create({
-//       data: {
-//         id: nano_id(),
-//         email,
-//         firstName,
-//         lastName,
-//         emailConfirmed: false,
-//         password: {
-//           create: {
-//             id: nano_id(),
-//             hash,
-//           },
-//         },
-//       },
-//     });
-
-//     const token = jwt.sign({ userId: user.id }, SecretToken.confirm_account);
-//     try {
-//       await resend.emails.send({
-//         from: "Empleo <no-reply@mail.joshkeller.info>",
-//         to: [email],
-//         subject: "Confirm Email",
-//         html: `
-//             <div>
-//                 <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/auth/confirm?token=${token}"> ${process.env.API_URL}/auth/confirm?token=${token}</a></p>
-//             </div>
-//             `,
-//         text: `<p>Click the following link to confirm your email: ${process.env.API_URL}/auth/confirm?token=${token}`,
-//       });
-//     } catch (error) {
-//       console.error(error);
-//     }
-
-//     return c.json({
-//       message: "Account created successfully. Confirm email before signing in.",
-//     });
-//   }
-// });
-
-// api.post("/sign_in", async (c) => {
-//   const { email, password } = await z
-//     .object({
-//       email: z.string(),
-//       password: z.string(),
-//     })
-//     .parseAsync(await c.req.parseBody());
-
-//   let user;
-//   try {
-//     user = await prisma.user.findUniqueOrThrow({
-//       where: {
-//         email,
-//       },
-//       include: {
-//         password: true,
-//       },
-//     });
-//   } catch {
-//     throw new ClientError("Could not find an account with this email");
-//   }
-//   if (!user.emailConfirmed) {
-//     throw new ClientError("Please confirm email before signing in");
-//   }
-
-//   // Missing code
-//   if (!user.password) {
-//     throw new ClientError("Please reset password");
-//   }
-
-//   const valid = await bcrypt.compare(password, user.password.hash);
-
-//   if (valid === true) {
-//     const token = jwt.sign({ userId: user.id }, SecretToken.auth);
-//     setCookie(c, "token", token, {
-//       path: "/",
-//     });
-//     return c.json({ token });
-//   } else {
-//     throw new ClientError("Incorrect email or password", 403);
-//   }
-// });
-
-// api.post("/rest_password/request", async (c) => {
-//   const { email } = await z
-//     .object({
-//       email: z.string(),
-//     })
-//     .parseAsync(await c.req.parseBody());
-
-//   let user;
-//   try {
-//     user = await prisma.user.findUniqueOrThrow({
-//       where: {
-//         email,
-//       },
-//     });
-//   } catch {
-//     throw new ClientError("Could not find an account with this email", 403);
-//   }
-
-//   const token = jwt.sign({ userId: user.id }, SecretToken.reset_password);
-//   const link = `${process.env.WEBSITE_URL}/recipes?authFlow=reset_password&token=${token}&email=${user.email}`;
-//   try {
-//     await resend.emails.send({
-//       from: "Empleo <no-reply@mail.joshkeller.info>",
-//       to: [email],
-//       subject: "Reset Password",
-//       html: `
-//         <div>
-//             <p>Click the following link to reset your password:  <a href="${link}">${link}</a></p>
-//         </div>
-//         `,
-//       text: `Click the following link to confirm your email: ${link}`,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//   }
-//   return c.json({
-//     message: "Email sent successfully",
-//   });
-// });
-
-// api.post("/reset_password", async (c) => {
-//   const { token, password } = await z
-//     .object({
-//       token: z.string(),
-//       password: z.string(),
-//     })
-//     .parseAsync(await c.req.parseBody());
-
-//   try {
-//     const { userId } = jwt.verify(token, SecretToken.reset_password);
-
-//     const hash = await bcrypt.hash(password, SALT_ROUNDS);
-
-//     let user = await prisma.user.update({
-//       where: {
-//         id: userId,
-//       },
-//       data: {
-//         emailConfirmed: true,
-//         password: {
-//           update: {
-//             hash,
-//           },
-//         },
-//       },
-//     });
-
-//     return c.json(user);
-//   } catch {
-//     throw new ClientError("Could not reset password. Please try again.");
-//   }
-// });
-
-// export default handle(api);
+export default router;

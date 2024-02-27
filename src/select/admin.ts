@@ -35,8 +35,20 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
       url: true,
     },
   },
+  banner: {
+    select: {
+      id: true,
+      url: true,
+    },
+  },
   headerFont: true,
   bodyFont: true,
+  primaryColor: true,
+  secondaryColor: true,
+  accentColor: true,
+  layout: true,
+  description: true,
+  longDescription: true,
   createdAt: true,
   updatedAt: true,
 };
@@ -46,8 +58,8 @@ export const OrganizationSelect: Prisma.OrganizationSelect = {
 
 export const BaseUserSelect: Prisma.UserSelect = {
   id: true,
-  firstName: true,
-  lastName: true,
+  // firstName: true,
+  // lastName: true,
   email: true,
   emailConfirmed: true,
   createdAt: true,
@@ -66,11 +78,54 @@ export const BaseListingSelect: Prisma.ListingSelect = {
   salaryRange: true,
   jobDescription: true,
   jobRequirements: true,
-  organizationId: true,
-  organization: true,
   createdAt: true,
   updatedAt: true,
 };
 export const ListingSelect: Prisma.ListingSelect = {
   ...BaseListingSelect,
+};
+
+export const BaseApplicationSelect: Prisma.ApplicationSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
+  gender: true,
+  address: true,
+  city: true,
+  state: true,
+  zip: true,
+  usCitizen: true,
+  usAuthorized: true,
+  prevEmployee: true,
+  nonCompete: true,
+  olderThan18: true,
+  race: true,
+  hispanicOrLatino: true,
+  veteranStatus: true,
+  disabilityStatus: true,
+  workVisa: true,
+  workVisaType: true,
+  language: true,
+  availableStartDate: true,
+  note: true,
+  relocate: true,
+  resume: {
+    select: {
+      id: true,
+      url: true,
+    },
+  },
+  coverLetter: {
+    select: {
+      id: true,
+      url: true,
+    },
+  },
+  createdAt: true,
+  updatedAt: true,
+  userId: true,
+};
+export const ApplicationSelect: Prisma.ApplicationSelect = {
+  ...BaseApplicationSelect,
 };

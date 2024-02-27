@@ -16,50 +16,66 @@ enum Font {
     notoSerif
 }
 
+enum Layout {
+    one
+    two
+    three
+    four
+    five
+}
+
 model Organization {
-    id          String    @id
-    title       String
-    slug        String    @unique
-    dnsRecordId String    @unique
-    createdAt   DateTime  @default(now()) @map("created_at")
-    updatedAt   DateTime  @updatedAt @map("updated_at")
-    users       User[]
-    admins      Admin[]
-    listing     Listing[]
-    images      Image[]   @relation("OrganizationImages")
-    logoId      String?   @unique @map("logo_id")
-    logo        Image?    @relation(fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    headerFont  Font      @default(inter) @map("header_font")
-    bodyFont    Font      @default(inter) @map("body_font")
+    id              String    @id
+    title           String
+    slug            String    @unique
+    dnsRecordId     String    @unique
+    createdAt       DateTime  @default(now()) @map("created_at")
+    updatedAt       DateTime  @updatedAt @map("updated_at")
+    users           User[]
+    admins          Admin[]
+    listing         Listing[]
+    images          Image[]   @relation("OrganizationImages")
+    logoId          String?   @unique @map("logo_id")
+    logo            Image?    @relation("LogoRelation", fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    bannerId        String?   @unique @map("banner_id")
+    banner          Image?    @relation("BannerRelation", fields: [bannerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    headerFont      Font      @default(inter) @map("header_font")
+    bodyFont        Font      @default(inter) @map("body_font")
+    primaryColor    String?   @map("primary_color")
+    secondaryColor  String?   @map("secondary_color")
+    accentColor     String?   @map("accent_color")
+    description     String?   @map("description")
+    longDescription String?   @map("long_description")
+    layout          Layout    @default(one) @map("layout")
+    files           File[]    @relation("OrganizationFiles")
 
     @@map("organization")
 }
 
 model Admin {
-    id             String         @id
-    firstName      String         @map("first_name")
-    lastName       String?        @map("last_name")
-    email          String         @unique
-    emailConfirmed Boolean        @default(false) @map("email_confirmed")
-    selfCreated    Boolean        @default(false) @map("self_created")
-    createdAt      DateTime       @default(now()) @map("created_at")
-    updatedAt      DateTime       @updatedAt @map("updated_at")
+    id             String            @id
+    firstName      String            @map("first_name")
+    lastName       String?           @map("last_name")
+    email          String            @unique
+    emailConfirmed Boolean           @default(false) @map("email_confirmed")
+    selfCreated    Boolean           @default(false) @map("self_created")
+    createdAt      DateTime          @default(now()) @map("created_at")
+    updatedAt      DateTime          @updatedAt @map("updated_at")
     password       Password?
     organizations  Organization[]
+    notes          ApplicationNote[]
 
     @@map("admin")
 }
 
 model User {
     id             String         @id
-    firstName      String         @map("first_name")
-    lastName       String?        @map("last_name")
     email          String         @unique
     emailConfirmed Boolean        @default(false) @map("email_confirmed")
     createdAt      DateTime       @default(now()) @map("created_at")
     updatedAt      DateTime       @updatedAt @map("updated_at")
-    password       Password?
     organizations  Organization[]
+    applications   Application[]
 
     @@map("user")
 }
@@ -68,8 +84,6 @@ model Password {
     id      String  @id
     adminId String? @unique @map("admin_id")
     admin   Admin?  @relation(fields: [adminId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-    userId  String? @unique @map("user_id")
-    user    User?   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
     hash    String
 
     @@map("password")
@@ -88,21 +102,123 @@ model Listing {
     jobRequirements String?       @map("job_requirements")
     createdAt       DateTime      @default(now()) @map("created_at")
     updatedAt       DateTime      @updatedAt @map("updated_at")
+    Application     Application[]
+    // Resume          File[]   @relation("ResumeRelation")
+    // CoverLetter     File[]   @relation("CoverLetterRelation")
 
+    @@unique([organizationId, id])
     @@index([organizationId])
     @@map("listing")
 }
 
+enum Gender {
+    male
+    female
+    prefer_not_to_say
+    other
+}
+
+enum Status {
+    new
+    in_review
+    interview
+    offer_pending
+    offer_accepted
+    offer_rejected
+    rejected
+}
+
+model Application {
+    id                 String    @id
+    organizationId     String?   @map("organization_id")
+    listingId          String?   @map("listing_id")
+    listing            Listing?  @relation(fields: [organizationId, listingId], references: [organizationId, id], onDelete: Cascade, onUpdate: Cascade)
+    userId             String    @map("user_id")
+    user               User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    firstName          String    @map("first_name")
+    lastName           String    @map("last_name")
+    phone              String?   @map("phone")
+    gender             Gender    @default(prefer_not_to_say) @map("gender")
+    address            String?   @map("address")
+    city               String?   @map("city")
+    state              String?   @map("state")
+    zip                String?   @map("zip")
+    usCitizen          Boolean   @default(false) @map("us_citizen")
+    usAuthorized       Boolean   @default(false) @map("us_authorized")
+    prevEmployee       Boolean   @default(false) @map("prev_employee")
+    nonCompete         Boolean   @default(false) @map("non_compete")
+    olderThan18        Boolean   @default(false) @map("older_than_18")
+    race               String?   @map("race")
+    hispanicOrLatino   Boolean   @default(false) @map("hispanic_or_latino")
+    veteranStatus      String?   @map("veteran_status")
+    disabilityStatus   String?   @map("disability_status")
+    workVisa           Boolean   @default(false) @map("work_visa")
+    workVisaType       String?   @map("work_visa_type")
+    language           String?   @map("language")
+    availableStartDate DateTime? @map("available_start_date")
+    note               String?   @map("note")
+    relocate           Boolean   @default(false)
+    resumeId           String?   @unique @map("resume_id")
+    resume             File?     @relation("ApplicationResume", fields: [resumeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    coverLetterId      String?   @unique @map("cover_letter_id")
+    coverLetter        File?     @relation("ApplicationCoverLetter", fields: [coverLetterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+    createdAt         DateTime          @default(now()) @map("created_at")
+    updatedAt         DateTime          @updatedAt @map("updated_at")
+    applicataionNotes ApplicationNote[]
+    status            Status            @default(new) @map("status")
+
+    @@unique([organizationId, id])
+    @@unique([organizationId, listingId, id])
+    @@unique([organizationId, listingId, userId])
+    @@index([organizationId, listingId])
+    @@map("application")
+}
+
+model ApplicationNote {
+    id             String      @id
+    organizationId String
+    applicationId  String
+    application    Application @relation(fields: [organizationId, applicationId], references: [organizationId, id], onDelete: Cascade, onUpdate: Cascade)
+    text           String
+    adminId        String      @map("admin_id")
+    admin          Admin       @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    createdAt      DateTime    @default(now()) @map("created_at")
+    updatedAt      DateTime    @updatedAt @map("updated_at")
+
+    @@unique([organizationId, id])
+    @@unique([organizationId, applicationId, id])
+    @@index([organizationId, applicationId])
+}
+
 model Image {
-    id               String        @id
-    organizationId   String        @map("organization_id")
-    organization     Organization  @relation("OrganizationImages", fields: [organizationId], references: [id])
-    url              String
-    organizationLogo Organization?
-    createdAt        DateTime      @default(now()) @map("created_at")
-    updatedAt        DateTime      @updatedAt @map("updated_at")
+    id                 String        @id
+    organizationId     String        @map("organization_id")
+    organization       Organization  @relation("OrganizationImages", fields: [organizationId], references: [id])
+    url                String
+    organizationLogo   Organization? @relation("LogoRelation")
+    organizationBanner Organization? @relation("BannerRelation")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@unique([organizationId, id])
     @@index([organizationId])
     @@map("image")
+}
+
+model File {
+    id                     String       @id
+    organizationId         String       @map("organization_id")
+    organization           Organization @relation("OrganizationFiles", fields: [organizationId], references: [id])
+    url                    String
+    applicationResume      Application? @relation("ApplicationResume")
+    applicationCoverLetter Application? @relation("ApplicationCoverLetter")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@unique([organizationId, id])
+    @@index([organizationId])
+    @@map("file")
 }

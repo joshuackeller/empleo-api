@@ -19,7 +19,7 @@ router.post(
   handler(async (req, res) => {
     const { email, firstName, lastName, password, cloudflareToken } = z
       .object({
-        email: z.string().email(),
+        email: z.string().email().toLowerCase(),
         firstName: z.string(),
         lastName: z.string(),
         password: z.string().min(8, "Password must be 8 characters or more "),
@@ -97,7 +97,7 @@ router.post(
                 <p>Click the following link to confirm your email:  <a href="${process.env.API_URL}/admin/auth/confirm?token=${token}"> ${process.env.API_URL}/admin/auth/confirm?token=${token}</a></p>
             </div>
             `,
-          text: `<p>Click the following link to confirm your email: ${process.env.API_URL}/admin/auth/confirm?token=${token}`,
+          text: `Click the following link to confirm your email: ${process.env.API_URL}/admin/auth/confirm?token=${token}`,
         });
       } catch (error) {
         console.error("Could not send email", error);
@@ -146,7 +146,7 @@ router.post(
   handler(async (req, res) => {
     const { email, cloudflareToken } = z
       .object({
-        email: z.string().email(),
+        email: z.string().email().toLowerCase(),
         cloudflareToken: z.string({
           required_error: "No Cloudflare Token Provided",
         }),
