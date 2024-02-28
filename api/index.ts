@@ -17,7 +17,6 @@ import client_organizations from "./client/organizations";
 import client_auth from "./client/auth";
 import client_listings from "./client/listings";
 import client_applications from "./client/applications";
-import client_listing_applications from "./client/listings/applications";
 
 const app = express();
 
@@ -53,10 +52,6 @@ app.use("/admin/applications", admin_applications);
 // CLIENT ROUTES
 app.use("/client/auth", client_auth);
 app.use("/client/organizations", client_organizations);
-app.use(
-  "/client/listings/:listingId/applications",
-  client_listing_applications
-);
 app.use("/client/listings", client_listings);
 app.use("/client/applications", client_applications);
 
