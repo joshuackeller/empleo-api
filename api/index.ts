@@ -5,17 +5,18 @@ import ErrorHandler from "../src/middleware/ErrorHandler";
 import prisma from "../src/utilities/prisma";
 
 // IMPORT ADMIN ROUTES
-import admin_auth from "./admin/auth";
-import admin_self from "./admin/self";
-import admin_organizations from "./admin/organizations";
-import admin_admins from "./admin/admins";
-import admin_listings from "./admin/listings";
-import admin_applications from "./admin/applications";
+import admin_auth from "../routes/admin/auth";
+import admin_self from "../routes/admin/self";
+import admin_organizations from "../routes/admin/organizations";
+import admin_admins from "../routes/admin/admins";
+import admin_listings from "../routes/admin/listings";
+import admin_applications from "../routes/admin/applications";
 
 // IMPORT CLIENT ROUTES
-import client_organizations from "./client/organizations";
-import client_auth from "./client/auth";
-import client_listings from "./client/listings";
+import client_organizations from "../routes/client/organizations";
+import client_auth from "../routes/client/auth";
+import client_listings from "../routes/client/listings";
+import client_applications from "../routes/client/applications";
 
 const app = express();
 
@@ -39,13 +40,6 @@ app.get(
   })
 );
 
-//adding test user and application
-app.get("/test", async (_req, res) => {
-  const applications = await prisma.application.findMany();
-
-  res.send(applications);
-});
-
 // ADMIN ROUTES
 app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
@@ -59,6 +53,7 @@ app.use("/admin/applications", admin_applications);
 app.use("/client/auth", client_auth);
 app.use("/client/organizations", client_organizations);
 app.use("/client/listings", client_listings);
+app.use("/client/applications", client_applications);
 
 app.use(ErrorHandler);
 

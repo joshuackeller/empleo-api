@@ -5,10 +5,11 @@ import { NextFunction, Response } from "express";
 export default function OrgMiddleware(
   req: ClientRequest,
   _res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) {
   try {
     req.slug = undefined;
+
     if (
       !req.headers.organization ||
       typeof req.headers.organization !== "string"

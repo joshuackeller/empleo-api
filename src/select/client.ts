@@ -25,11 +25,12 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   createdAt: true,
   updatedAt: true,
 };
+
 export const OrganizationSelect: Prisma.OrganizationSelect = {
   ...BaseOrganizationSelect,
 };
 
-export const BaseClientListingSelect: Prisma.ListingSelect = {
+export const BaseListingSelect: Prisma.ListingSelect = {
   id: true,
   jobTitle: true,
   location: true,
@@ -41,6 +42,10 @@ export const BaseClientListingSelect: Prisma.ListingSelect = {
   updatedAt: true,
 };
 
+export const ListingSelect: Prisma.ListingSelect = {
+  ...BaseListingSelect,
+};
+
 export const BaseUserSelect: Prisma.UserSelect = {
   id: true,
   email: true,
@@ -48,50 +53,37 @@ export const BaseUserSelect: Prisma.UserSelect = {
   updatedAt: true,
 };
 
-export const ClientListingSelect: Prisma.ListingSelect = {
-  ...BaseClientListingSelect,
-};
-
-export const BaseClientApplicationSelect: Prisma.ApplicationSelect = {
+export const BaseFileSelect: Prisma.FileSelect = {
   id: true,
-  firstName: true,
-  lastName: true,
-  phone: true,
-  address: true,
-  city: true,
-  state: true,
-  zip: true,
-  usCitizen: true,
-  usAuthorized: true,
-  prevEmployee: true,
-  nonCompete: true,
-  olderThan18: true,
-  race: true,
-  hispanicOrLatino: true,
-  veteranStatus: true,
-  disabilityStatus: true,
-  workVisa: true,
-  workVisaType: true,
-  language: true,
-  availableStartDate: true,
-  relocate: true,
-  note: true,
-  resume: {
-    select: {
-      url: true,
-    },
-  },
-  coverLetter: {
-    select: {
-      url: true,
-    },
-  },
+  url: true,
   createdAt: true,
   updatedAt: true,
 };
 
-export const ClientApplicationSelect: Prisma.ApplicationSelect = {
-  ...BaseClientApplicationSelect,
+export const FileSelect: Prisma.FileSelect = {
+  ...BaseFileSelect,
+};
+
+export const BaseApplicationSelect: Prisma.ApplicationSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
+  availableStartDate: true,
+  note: true,
+  status: true,
+  listingId: true,
+  resumeId: true,
+  coverLetterId: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+export const ApplicationSelect: Prisma.ApplicationSelect = {
+  ...BaseApplicationSelect,
+  resume: { select: BaseFileSelect },
+  coverLetter: { select: BaseFileSelect },
+  listing: { select: BaseListingSelect },
 };
 
 export const UserSelect: Prisma.UserSelect = {
