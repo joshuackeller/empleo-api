@@ -85,31 +85,24 @@ export const ListingSelect: Prisma.ListingSelect = {
   ...BaseListingSelect,
 };
 
+export const BaseFileSelect: Prisma.FileSelect = {
+  id: true,
+  url: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+export const FileSelect: Prisma.FileSelect = {
+  ...BaseFileSelect,
+};
+
 export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   id: true,
   firstName: true,
   lastName: true,
   phone: true,
-  gender: true,
-  address: true,
-  city: true,
-  state: true,
-  zip: true,
-  usCitizen: true,
-  usAuthorized: true,
-  prevEmployee: true,
-  nonCompete: true,
-  olderThan18: true,
-  race: true,
-  hispanicOrLatino: true,
-  veteranStatus: true,
-  disabilityStatus: true,
-  workVisa: true,
-  workVisaType: true,
-  language: true,
   availableStartDate: true,
   note: true,
-  relocate: true,
   resume: {
     select: {
       id: true,

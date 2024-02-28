@@ -41,17 +41,6 @@ app.get(
   })
 );
 
-app.get("/test", async (req, res) => {
-  res.send(JSON.stringify(await prisma.admin.findMany(), null, 2));
-});
-
-//adding test user and application
-app.get("/test", async (_req, res) => {
-  const applications = await prisma.application.findMany();
-
-  res.send(applications);
-});
-
 // ADMIN ROUTES
 app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
