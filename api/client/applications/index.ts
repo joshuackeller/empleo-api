@@ -3,7 +3,7 @@ import express from "express";
 import handler from "../../../src/middleware/handler";
 import { z } from "zod";
 import { ClientRequest } from "../../../src/utilities/interfaces";
-import { ListingSelect } from "../../../src/select/client";
+import { ApplicationSelect } from "../../../src/select/client";
 import OrgMiddleware from "../../../src/middleware/client/OrgMiddleware";
 import AuthMiddleware from "../../../src/middleware/client/AuthMiddleware";
 
@@ -24,7 +24,7 @@ router.get(
         },
         userId: req.userId,
       },
-      select: ListingSelect,
+      select: ApplicationSelect,
     });
 
     res.json(applications);
@@ -50,7 +50,7 @@ router.get(
         },
         userId: req.userId,
       },
-      select: ListingSelect,
+      select: ApplicationSelect,
     });
 
     res.json(application);

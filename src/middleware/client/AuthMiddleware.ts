@@ -18,7 +18,7 @@ export default function AuthMiddleware(
 
     const { userId } = jwt.verify(
       req.headers.authorization,
-      SecretToken.auth
+      SecretToken.clientAuth
     ) as ClientJWTObject;
 
     req.userId = userId;

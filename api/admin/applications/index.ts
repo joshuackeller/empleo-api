@@ -5,7 +5,6 @@ import { AdminRequest } from "../../../src/utilities/interfaces";
 import AuthMiddleware from "../../../src/middleware/admin/AuthMiddleware";
 import { z } from "zod";
 import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
-import nano_id from "../../../src/utilities/nano_id";
 import { ApplicationSelect } from "../../../src/select/admin";
 
 const router = express.Router();

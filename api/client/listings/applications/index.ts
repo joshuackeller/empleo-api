@@ -7,11 +7,36 @@ import { ClientRequest } from "../../../../src/utilities/interfaces";
 import nano_id from "../../../../src/utilities/nano_id";
 import UploadToS3 from "../../../../src/utilities/UploadToS3";
 import prisma from "../../../../src/utilities/prisma";
+import { Prisma } from "@prisma/client";
+import { ClientError } from "../../../../src/utilities/errors";
+import { ApplicationSelect } from "../../../../src/select/client";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.use(AuthMiddleware);
 router.use(OrgMiddleware);
+
+router.get(
+  "/",
+  handler(async (req: ClientRequest, res) => {
+    const { listingId } = z.object({ listingId: z.string() }).parse(req.params);
+
+    const application = await prisma.application.findFirst({
+      where: {
+        userId: req.userId,
+        listing: {
+          id: listingId,
+          organization: {
+            slug: req.slug,
+          },
+        },
+      },
+      select: ApplicationSelect,
+    });
+
+    res.send(application);
+  })
+);
 
 router.post(
   "/",
@@ -22,78 +47,83 @@ router.post(
       .object({
         firstName: z.string(),
         lastName: z.string(),
+        linkedInUrl: z.string().optional(),
         phone: z.string().optional(),
-        gender: z.enum(["male", "female", "prefer_not_to_say", "other"]),
-        address: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        zip: z.string().optional(),
-        race: z.string().optional(),
-        veteranStatus: z.string().optional(),
-        disabilityStatus: z.string().optional(),
-        workVisaType: z.string().optional(),
-        language: z.string().optional(),
         note: z.string().optional(),
-        usCitizen: z.boolean().optional(),
-        usAuthorized: z.boolean().optional(),
-        prevEmployee: z.boolean().optional(),
-        nonCompete: z.boolean().optional(),
-        olderThan18: z.boolean().optional(),
-        hispanicOrLatino: z.boolean().optional(),
-        relocate: z.boolean().optional(),
-        workVisa: z.boolean().optional(),
-        availableStartDate: z.date(),
-        resume: z.any(),
-        coverLetter: z.any(),
+        availableStartDate: z.date().optional(),
+        resume: z.any().optional(),
+        coverLetter: z.any().optional(),
       })
       .parse(req.body);
 
     const { id: organizationId } = await prisma.organization.findUniqueOrThrow({
       where: { slug: req.slug },
     });
-    let resumeId, coverLetterId;
+
+    let resumeId, resumeKey, coverLetterId, coverLetterKey;
     if (resume) {
       resumeId = nano_id();
-      const resumeKey = `/results/${resumeId}`;
+      resumeKey = `/results/${resumeId}`;
       await UploadToS3(resume, organizationId, resumeKey);
     }
     if (coverLetter) {
       coverLetterId = nano_id();
-      const coverLetterKey = `/coverLetter/${coverLetterId}`;
+      coverLetterKey = `/coverLetter/${coverLetterId}`;
       await UploadToS3(resume, organizationId, coverLetterKey);
     }
 
-    const application = await prisma.application.create({
-      data: {
-        ...body,
-        id: nano_id(),
-        listing: {
-          connect: {
-            organizationId_id: {
-              organizationId,
-              id: listingId,
+    try {
+      const application = await prisma.application.create({
+        data: {
+          ...body,
+          id: nano_id(),
+          listing: {
+            connect: {
+              organizationId_id: {
+                organizationId,
+                id: listingId,
+              },
             },
           },
-        },
-        user: {
-          connect: {
-            id: req.userId,
+          user: {
+            connect: {
+              id: req.userId,
+            },
           },
+          resume: resumeId
+            ? {
+                create: {
+                  id: resumeId,
+                  organization: {
+                    connect: { id: organizationId },
+                  },
+                  url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com${resumeKey}`,
+                },
+              }
+            : undefined,
+          coverLetter: coverLetterId
+            ? {
+                create: {
+                  id: coverLetterId,
+                  organization: {
+                    connect: { id: organizationId },
+                  },
+                  url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com${coverLetterKey}`,
+                },
+              }
+            : undefined,
         },
-        resume: {
-          connect: {
-            id: resumeId,
-          },
-        },
-        coverLetter: {
-          connect: {
-            id: coverLetterId,
-          },
-        },
-      },
-    });
-
-    res.json(application);
+      });
+      res.json(application);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === "P2002") {
+          throw new ClientError("You've already submitted an application");
+        } else {
+          throw error;
+        }
+      }
+    }
   })
 );
 
