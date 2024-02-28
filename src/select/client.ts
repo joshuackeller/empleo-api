@@ -53,6 +53,17 @@ export const BaseUserSelect: Prisma.UserSelect = {
   updatedAt: true,
 };
 
+export const BaseFileSelect: Prisma.FileSelect = {
+  id: true,
+  url: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+export const FileSelect: Prisma.FileSelect = {
+  ...BaseFileSelect,
+};
+
 export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   id: true,
   firstName: true,
@@ -60,22 +71,19 @@ export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   phone: true,
   availableStartDate: true,
   note: true,
-  resume: {
-    select: {
-      url: true,
-    },
-  },
-  coverLetter: {
-    select: {
-      url: true,
-    },
-  },
+  status: true,
+  listingId: true,
+  resumeId: true,
+  coverLetterId: true,
   createdAt: true,
   updatedAt: true,
 };
 
 export const ApplicationSelect: Prisma.ApplicationSelect = {
   ...BaseApplicationSelect,
+  resume: { select: BaseFileSelect },
+  coverLetter: { select: BaseFileSelect },
+  listing: { select: BaseListingSelect },
 };
 
 export const UserSelect: Prisma.UserSelect = {
