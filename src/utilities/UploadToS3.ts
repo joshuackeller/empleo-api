@@ -23,7 +23,7 @@ const UploadToS3 = async (
   // Upload the image to S3
   await s3.send(
     new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET_NAME!,
+      Bucket: process.env.S3_BUCKET_NAME || "empleo-images",
       Body: buffer,
       ContentType: mime,
       Key: fileKey,
