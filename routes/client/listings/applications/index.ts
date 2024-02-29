@@ -3,10 +3,7 @@ import express from "express";
 import handler from "../../../../src/middleware/handler";
 import { z } from "zod";
 import { ClientRequest } from "../../../../src/utilities/interfaces";
-import {
-  ApplicationSelect,
-  ListingSelect,
-} from "../../../../src/select/client";
+import { ApplicationSelect } from "../../../../src/select/client";
 import OrgMiddleware from "../../../../src/middleware/client/OrgMiddleware";
 import AuthMiddleware from "../../../../src/middleware/client/AuthMiddleware";
 import nano_id from "../../../../src/utilities/nano_id";

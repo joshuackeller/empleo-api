@@ -6,6 +6,8 @@ import { ClientRequest } from "../../../src/utilities/interfaces";
 import { ApplicationSelect } from "../../../src/select/client";
 import OrgMiddleware from "../../../src/middleware/client/OrgMiddleware";
 import AuthMiddleware from "../../../src/middleware/client/AuthMiddleware";
+import nano_id from "../../../src/utilities/nano_id";
+import UploadToS3 from "../../../src/utilities/UploadToS3";
 
 const router = express.Router();
 
@@ -53,6 +55,86 @@ router.get(
       select: ApplicationSelect,
     });
 
+    res.json(application);
+  })
+);
+
+router.put(
+  "/:applicationId",
+  handler(async (req: ClientRequest, res) => {
+    const { applicationId } = z
+      .object({
+        applicationId: z.string(),
+      })
+      .parse(req.params);
+
+    const { resume, coverLetter, ...body } = z
+      .object({
+        firstName: z.string(),
+        lastName: z.string(),
+        linkedInUrl: z.string().optional(),
+        phone: z.string().optional(),
+        note: z.string().optional(),
+        availableStartDate: z.date().optional(),
+        resume: z.any().optional(),
+        coverLetter: z.any().optional(),
+      })
+      .parse(req.body);
+
+    const { id: organizationId } = await prisma.organization.findUniqueOrThrow({
+      where: { slug: req.slug },
+    });
+
+    let resumeId, resumeKey, coverLetterId, coverLetterKey;
+    if (resume) {
+      // Add logic to delete old file
+      resumeId = nano_id();
+      resumeKey = `/results/${resumeId}`;
+      await UploadToS3(resume, organizationId, resumeKey);
+    }
+    if (coverLetter) {
+      // Add logic to delete old file
+      coverLetterId = nano_id();
+      coverLetterKey = `/coverLetter/${coverLetterId}`;
+      await UploadToS3(resume, organizationId, coverLetterKey);
+    }
+
+    const application = await prisma.application.update({
+      where: {
+        id: applicationId,
+        userId: req.userId,
+        listing: {
+          organization: {
+            slug: req.slug,
+          },
+        },
+      },
+      data: {
+        ...body,
+        resume: resumeId
+          ? {
+              create: {
+                id: resumeId,
+                organization: {
+                  connect: { id: organizationId },
+                },
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com${resumeKey}`,
+              },
+            }
+          : undefined,
+        coverLetter: coverLetterId
+          ? {
+              create: {
+                id: coverLetterId,
+                organization: {
+                  connect: { id: organizationId },
+                },
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com${coverLetterKey}`,
+              },
+            }
+          : undefined,
+      },
+    });
     res.json(application);
   })
 );
