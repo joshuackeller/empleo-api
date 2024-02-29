@@ -8,22 +8,16 @@ const s3 = new S3({
   },
 });
 
-const UploadToS3 = async (
-  dataUrl: string,
-  organizationId: string,
-  fileKey: string
-) => {
+const UploadToS3 = async (dataUrl: string, fileKey: string) => {
   // Extract Mime and Buffer from dataUrl
   const mime = dataUrl?.split(":")[1].split(";")[0];
   const base64 = dataUrl?.split(",")[1];
   const buffer = Buffer.from(base64, "base64");
 
-  fileKey = `/${organizationId}${fileKey}`;
-
   // Upload the image to S3
   await s3.send(
     new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET_NAME!,
+      Bucket: process.env.S3_BUCKET_NAME,
       Body: buffer,
       ContentType: mime,
       Key: fileKey,

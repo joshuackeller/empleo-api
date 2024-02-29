@@ -3,10 +3,7 @@ import express from "express";
 import handler from "../../../../src/middleware/handler";
 import { z } from "zod";
 import { ClientRequest } from "../../../../src/utilities/interfaces";
-import {
-  ApplicationSelect,
-  ListingSelect,
-} from "../../../../src/select/client";
+import { ApplicationSelect } from "../../../../src/select/client";
 import OrgMiddleware from "../../../../src/middleware/client/OrgMiddleware";
 import AuthMiddleware from "../../../../src/middleware/client/AuthMiddleware";
 import nano_id from "../../../../src/utilities/nano_id";
@@ -66,13 +63,13 @@ router.post(
     let resumeId, resumeKey, coverLetterId, coverLetterKey;
     if (resume) {
       resumeId = nano_id();
-      resumeKey = `/results/${resumeId}`;
-      await UploadToS3(resume, organizationId, resumeKey);
+      resumeKey = `${organizationId}/resumes/${resumeId}`;
+      await UploadToS3(resume, resumeKey);
     }
     if (coverLetter) {
       coverLetterId = nano_id();
-      coverLetterKey = `/coverLetter/${coverLetterId}`;
-      await UploadToS3(resume, organizationId, coverLetterKey);
+      coverLetterKey = `${organizationId}/coverLetter/${coverLetterId}`;
+      await UploadToS3(resume, coverLetterKey);
     }
 
     try {
@@ -100,7 +97,7 @@ router.post(
                   organization: {
                     connect: { id: organizationId },
                   },
-                  url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com${resumeKey}`,
+                  url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${resumeKey}`,
                 },
               }
             : undefined,
@@ -111,7 +108,7 @@ router.post(
                   organization: {
                     connect: { id: organizationId },
                   },
-                  url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com${coverLetterKey}`,
+                  url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${coverLetterKey}`,
                 },
               }
             : undefined,
