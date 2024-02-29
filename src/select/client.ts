@@ -70,6 +70,7 @@ export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   lastName: true,
   phone: true,
   availableStartDate: true,
+  linkedInUrl: true,
   note: true,
   status: true,
   listingId: true,

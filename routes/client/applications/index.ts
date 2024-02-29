@@ -87,16 +87,14 @@ router.put(
 
     let resumeId, resumeKey, coverLetterId, coverLetterKey;
     if (resume) {
-      // Add logic to delete old file
       resumeId = nano_id();
-      resumeKey = `/results/${resumeId}`;
-      await UploadToS3(resume, organizationId, resumeKey);
+      resumeKey = `${organizationId}/resumes/${resumeId}`;
+      await UploadToS3(resume, resumeKey);
     }
     if (coverLetter) {
-      // Add logic to delete old file
       coverLetterId = nano_id();
-      coverLetterKey = `/coverLetter/${coverLetterId}`;
-      await UploadToS3(resume, organizationId, coverLetterKey);
+      coverLetterKey = `${organizationId}/coverLetter/${coverLetterId}`;
+      await UploadToS3(resume, coverLetterKey);
     }
 
     const application = await prisma.application.update({
@@ -118,7 +116,7 @@ router.put(
                 organization: {
                   connect: { id: organizationId },
                 },
-                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com${resumeKey}`,
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${resumeKey}`,
               },
             }
           : undefined,
@@ -129,7 +127,7 @@ router.put(
                 organization: {
                   connect: { id: organizationId },
                 },
-                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com${coverLetterKey}`,
+                url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${coverLetterKey}`,
               },
             }
           : undefined,
