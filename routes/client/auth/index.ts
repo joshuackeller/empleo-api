@@ -9,7 +9,15 @@ import handler from "../../../src/middleware/handler";
 import { ClientRequest } from "../../../src/utilities/interfaces";
 import { OrganizationSelect, UserSelect } from "../../../src/select/client";
 import OrgMiddleware from "../../../src/middleware/client/OrgMiddleware";
+import axios from "axios";
+import { ClientError } from "../../../src/utilities/errors";
+
 const resend = new Resend(process.env.RESEND_KEY);
+
+const API_URL =
+  process.env.NODE_ENV === "prod"
+    ? "https://api.empleo.work"
+    : "http://localhost:8000";
 
 const router = express.Router();
 
@@ -17,6 +25,7 @@ router.get(
   "/confirm_account",
   handler(async (req, res) => {
     let organization;
+    let WEBSITE_URL;
     try {
       const { token, returnRoute } = z
         .object({
@@ -27,7 +36,7 @@ router.get(
 
       const { organizationId, userId } = jwt.verify(
         token,
-        SecretToken.clientRequestLink,
+        SecretToken.clientRequestLink
       ) as { organizationId: string; userId: string };
 
       let user;
@@ -48,15 +57,20 @@ router.get(
 
       const newToken = jwt.sign(
         { userId: user.id, organizationId: organization.id },
-        SecretToken.clientAuth,
+        SecretToken.clientAuth
       );
 
+      WEBSITE_URL =
+        process.env.NODE_ENV === "prod"
+          ? `https://${organization.slug}.empleo.work`
+          : `http://${organization.slug}.localhost:3000`;
+
       res.redirect(
-        `https://${organization.slug}.empleo.work/token?token=${newToken}&returnRoute=${returnRoute}`,
+        `${WEBSITE_URL}/token?token=${newToken}&returnRoute=${returnRoute}`
       );
     } catch {
       if (!!organization && !!organization.slug) {
-        res.redirect(`https://${organization.slug}.empleo.work/auth_error`);
+        res.redirect(`${WEBSITE_URL}/auth_error`);
       } else {
         res.send(`
             <div>
@@ -66,7 +80,7 @@ router.get(
             `);
       }
     }
-  }),
+  })
 );
 
 router.use(OrgMiddleware);
@@ -74,27 +88,27 @@ router.use(OrgMiddleware);
 router.post(
   "/request_link",
   handler(async (req: ClientRequest, res) => {
-    const { email, returnRoute } = z
+    const { email, cloudflareToken, returnRoute } = z
       .object({
         email: z.string().email().toLowerCase(),
-        // cloudflareToken: z.string({
-        //   required_error: "No Cloudflare Token Provided",
-        // }),
+        cloudflareToken: z.string({
+          required_error: "No Cloudflare Token Provided",
+        }),
         returnRoute: z.string().optional(),
       })
       .parse(req.body);
 
-    // const formData = new FormData();
-    // formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
-    // formData.append("response", cloudflareToken);
-    // formData.append("remoteip", req.ip!);
-    // const { data: response } = await axios.post(
-    //   "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-    //   formData,
-    // );
-    // if (response.success !== true) {
-    //   throw new ClientError("Invalid token. Refresh page.");
-    // }
+    const formData = new FormData();
+    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    formData.append("response", cloudflareToken);
+    formData.append("remoteip", req.ip!);
+    const { data: response } = await axios.post(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      formData
+    );
+    if (response.success !== true) {
+      throw new ClientError("Invalid token. Refresh page.");
+    }
 
     const [organization, user] = await prisma.$transaction([
       prisma.organization.findUniqueOrThrow({
@@ -131,7 +145,7 @@ router.post(
 
     const token = jwt.sign(
       { userId: user.id, organizationId: organization.id },
-      SecretToken.clientRequestLink,
+      SecretToken.clientRequestLink
     );
 
     try {
@@ -142,11 +156,11 @@ router.post(
         html: `
             <div>
                 <p>Click the following link to continue to ${organization.title}:
-                    <a href="https://api.empleo.work/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}">https://api.empleo.work/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}</a>
+                    <a href="${API_URL}/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}">https://api.empleo.work</a>
                 </p>
             </div>
             `,
-        text: `Click the following link to continue to ${organization.title}: https://api.empleo.work/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}`,
+        text: `Click the following link to continue to ${organization.title}: ${API_URL}/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}`,
       });
     } catch (error) {
       console.error("Could not send email", error);
@@ -154,7 +168,7 @@ router.post(
     res.json({
       message: "Account created successfully. Check email for sign link.",
     });
-  }),
+  })
 );
 
 export default router;
