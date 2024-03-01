@@ -7,9 +7,9 @@ import { ApplicationSelect } from "../../../src/select/client";
 import OrgMiddleware from "../../../src/middleware/client/OrgMiddleware";
 import AuthMiddleware from "../../../src/middleware/client/AuthMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
-import UploadToS3 from "../../../src/utilities/UploadToS3";
 import { ClientError } from "../../../src/utilities/errors";
 import GetSignedUrl from "../../../src/utilities/GetSignedUrl";
+import UploadToFileS3 from "../../../src/utilities/UploadToFileS3";
 
 const router = express.Router();
 
@@ -125,7 +125,7 @@ router.put(
       }
       resumeId = nano_id();
       resumeKey = `${organizationId}/resumes/${resumeId}`;
-      await UploadToS3(resume, resumeKey);
+      await UploadToFileS3(resume, resumeKey);
     }
     if (coverLetter) {
       // Add logic to delete cover letter
@@ -134,7 +134,7 @@ router.put(
       }
       coverLetterId = nano_id();
       coverLetterKey = `${organizationId}/coverLetter/${coverLetterId}`;
-      await UploadToS3(resume, coverLetterKey);
+      await UploadToFileS3(resume, coverLetterKey);
     }
 
     const application = await prisma.application.update({
