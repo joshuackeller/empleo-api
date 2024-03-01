@@ -157,6 +157,11 @@ router.put(
       layout,
       description,
       longDescription,
+      eeocEnabled,
+      veteranEnabled,
+      disabilityEnabled,
+      raceEnabled,
+      genderEnabled,
     } = z
       .object({
         title: z.string().optional(),
@@ -170,6 +175,11 @@ router.put(
         layout: z.string().optional(),
         description: z.string().optional(),
         longDescription: z.string().optional(),
+        eeocEnabled: z.boolean().optional(),
+        veteranEnabled: z.boolean().optional(),
+        disabilityEnabled: z.boolean(),
+        raceEnabled: z.boolean().optional(),
+        genderEnabled: z.boolean().optional(),
       })
       .parse(req.body);
 
@@ -251,6 +261,11 @@ router.put(
         layout: prismaLayout,
         description,
         longDescription,
+        eeocEnabled,
+        veteranEnabled,
+        disabilityEnabled,
+        raceEnabled,
+        genderEnabled,
         logo: imageId
           ? {
               create: {
