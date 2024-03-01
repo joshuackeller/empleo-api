@@ -10,6 +10,7 @@ import nano_id from "../../../../src/utilities/nano_id";
 import UploadToS3 from "../../../../src/utilities/UploadToS3";
 import { Prisma } from "@prisma/client";
 import { ClientError } from "../../../../src/utilities/errors";
+import GetSignedUrl from "../../../../src/utilities/GetSignedUrl";
 
 const router = express.Router({ mergeParams: true });
 
@@ -34,6 +35,19 @@ router.get(
       select: ApplicationSelect,
     });
 
+    if (application?.resume) {
+      (application.resume as any).url = await GetSignedUrl(
+        application.resume.s3Key
+      );
+      delete (application.resume as any).s3Key;
+    }
+    if (application?.coverLetter) {
+      (application.coverLetter as any).url = await GetSignedUrl(
+        application.coverLetter.s3Key
+      );
+      delete (application.coverLetter as any).s3Key;
+    }
+
     res.send(application);
   })
 );
@@ -43,7 +57,7 @@ router.post(
   handler(async (req: ClientRequest, res) => {
     const { listingId } = z.object({ listingId: z.string() }).parse(req.params);
 
-    const { resume, coverLetter, ...body } = z
+    const { resume, coverLetter, resumeName, coverLetterName, ...body } = z
       .object({
         firstName: z.string(),
         lastName: z.string(),
@@ -52,7 +66,9 @@ router.post(
         note: z.string().optional(),
         availableStartDate: z.date().optional(),
         resume: z.any().optional(),
+        resumeName: z.any().optional(),
         coverLetter: z.any().optional(),
+        coverLetterName: z.any().optional(),
       })
       .parse(req.body);
 
@@ -62,11 +78,17 @@ router.post(
 
     let resumeId, resumeKey, coverLetterId, coverLetterKey;
     if (resume) {
+      if (!resumeName) {
+        throw new ClientError("No resume fiile name provided");
+      }
       resumeId = nano_id();
       resumeKey = `${organizationId}/resumes/${resumeId}`;
       await UploadToS3(resume, resumeKey);
     }
     if (coverLetter) {
+      if (!coverLetterName) {
+        throw new ClientError("No resume fiile name provided");
+      }
       coverLetterId = nano_id();
       coverLetterKey = `${organizationId}/coverLetter/${coverLetterId}`;
       await UploadToS3(resume, coverLetterKey);
@@ -90,30 +112,49 @@ router.post(
               id: req.userId,
             },
           },
-          resume: resumeId
-            ? {
-                create: {
-                  id: resumeId,
-                  organization: {
-                    connect: { id: organizationId },
+          resume:
+            resumeId && resumeKey
+              ? {
+                  create: {
+                    id: resumeId,
+                    organization: {
+                      connect: { id: organizationId },
+                    },
+                    name: resumeName,
+                    s3Key: resumeKey,
                   },
-                  url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${resumeKey}`,
-                },
-              }
-            : undefined,
-          coverLetter: coverLetterId
-            ? {
-                create: {
-                  id: coverLetterId,
-                  organization: {
-                    connect: { id: organizationId },
+                }
+              : undefined,
+          coverLetter:
+            coverLetterId && coverLetterKey
+              ? {
+                  create: {
+                    id: coverLetterId,
+                    organization: {
+                      connect: { id: organizationId },
+                    },
+                    name: coverLetterName,
+                    s3Key: coverLetterKey,
                   },
-                  url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/${coverLetterKey}`,
-                },
-              }
-            : undefined,
+                }
+              : undefined,
         },
+        select: ApplicationSelect,
       });
+
+      if (application?.resume) {
+        (application.resume as any).url = await GetSignedUrl(
+          application.resume.s3Key
+        );
+        delete (application.resume as any).s3Key;
+      }
+      if (application?.coverLetter) {
+        (application.coverLetter as any).url = await GetSignedUrl(
+          application.coverLetter.s3Key
+        );
+        delete (application.coverLetter as any).s3Key;
+      }
+
       res.json(application);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
