@@ -114,13 +114,13 @@ export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   resume: {
     select: {
       id: true,
-      url: true,
+      // url: true,
     },
   },
   coverLetter: {
     select: {
       id: true,
-      url: true,
+      // url: true,
     },
   },
   createdAt: true,
