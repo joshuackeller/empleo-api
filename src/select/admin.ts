@@ -94,7 +94,8 @@ export const ListingSelect: Prisma.ListingSelect = {
 
 export const BaseFileSelect: Prisma.FileSelect = {
   id: true,
-  url: true,
+  name: true,
+  s3Key: true,
   createdAt: true,
   updatedAt: true,
 };
