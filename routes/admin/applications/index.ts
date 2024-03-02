@@ -1,12 +1,18 @@
 import prisma from "../../../src/utilities/prisma";
-import express from "express";
+import express, { application } from "express";
 import handler from "../../../src/middleware/handler";
 import { AdminRequest } from "../../../src/utilities/interfaces";
 import AuthMiddleware from "../../../src/middleware/admin/AuthMiddleware";
 import { z } from "zod";
 import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
-import { ApplicationSelect } from "../../../src/select/admin";
+import {
+  ApplicationNoteSelect,
+  ApplicationSelect,
+} from "../../../src/select/admin";
 import GetSignedUrl from "../../../src/utilities/GetSignedUrl";
+import { F } from "@upstash/redis/zmscore-a4ec4c2a";
+import { Status } from "@prisma/client";
+import nano_id from "../../../src/utilities/nano_id";
 
 const router = express.Router();
 
@@ -42,6 +48,7 @@ router.get(
   })
 );
 
+//application
 router.get(
   "/:applicationId",
   handler(async (req: AdminRequest, res) => {
@@ -71,6 +78,93 @@ router.get(
       );
       delete (application.coverLetter as any).s3Key;
     }
+
+    res.json(application);
+  })
+);
+
+//application notes
+router.get(
+  "/:applicationId/notes",
+  handler(async (req: AdminRequest, res) => {
+    const { applicationId } = z
+      .object({
+        applicationId: z.string(),
+      })
+      .parse(req.params);
+
+    const applicationNotes = await prisma.applicationNote.findMany({
+      where: {
+        applicationId: applicationId,
+        organizationId: req.organizationId,
+      },
+      select: ApplicationNoteSelect,
+    });
+
+    res.json(applicationNotes);
+  })
+);
+
+//update application note
+router.post(
+  "/:applicationId/notes",
+  handler(async (req: AdminRequest, res) => {
+    if (!req.organizationId || !req.adminId) {
+      res
+        .status(400)
+        .json({ error: "organizationId and adminid are required" });
+      return;
+    }
+    const body = z
+      .object({
+        text: z.string(),
+      })
+      .parse(req.body);
+    const { applicationId } = req.params;
+
+    const applicationNote = await prisma.applicationNote.create({
+      data: {
+        id: nano_id(),
+        organizationId: req.organizationId,
+        adminId: req.adminId,
+        applicationId: applicationId,
+        ...body,
+      },
+      select: ApplicationNoteSelect,
+    });
+
+    res.json(applicationNote);
+  })
+);
+
+// update application
+router.put(
+  "/:applicationId",
+  handler(async (req: AdminRequest, res) => {
+    const { status } = z
+      .object({
+        status: z.enum([
+          Object.values(Status)[0],
+          ...Object.values(Status).splice(1),
+        ]),
+      })
+      .parse(req.body);
+
+    const { applicationId } = z
+      .object({
+        applicationId: z.string(),
+      })
+      .parse(req.params);
+
+    const application = await prisma.application.update({
+      where: {
+        organizationId: req.organizationId,
+        id: applicationId,
+      },
+      data: {
+        status: status,
+      },
+    });
 
     res.json(application);
   })

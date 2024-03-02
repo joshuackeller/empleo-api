@@ -102,24 +102,30 @@ export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   firstName: true,
   lastName: true,
   phone: true,
+  status: true,
   availableStartDate: true,
   note: true,
-  resume: {
-    select: {
-      id: true,
-      url: true,
-    },
-  },
+  resume: { select: FileSelect },
   coverLetter: {
-    select: {
-      id: true,
-      url: true,
-    },
+    select: FileSelect,
   },
   createdAt: true,
   updatedAt: true,
   userId: true,
 };
+
 export const ApplicationSelect: Prisma.ApplicationSelect = {
   ...BaseApplicationSelect,
+};
+
+export const BaseApplicationNoteSelect: Prisma.ApplicationNoteSelect = {
+  id: true,
+  text: true,
+  admin: { select: BaseAdminSelect },
+  createdAt: true,
+  updatedAt: true,
+};
+
+export const ApplicationNoteSelect: Prisma.ApplicationNoteSelect = {
+  ...BaseApplicationNoteSelect,
 };
