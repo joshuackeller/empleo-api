@@ -18,6 +18,7 @@ import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 import { Font } from "@prisma/client";
 import { Layout } from "@prisma/client";
 import axios from "axios";
+import UploadToS3 from "../../../src/utilities/UploadToS3";
 
 const s3 = new S3({
   region: "us-east-1",
@@ -145,7 +146,7 @@ router.post(
 router.put(
   "/:organizationId",
   handler(async (req: AdminRequest, res) => {
-    const {
+    let {
       title,
       dataUrl,
       dataUrlBanner,
@@ -167,12 +168,21 @@ router.put(
         title: z.string().optional(),
         dataUrl: z.string().optional(),
         dataUrlBanner: z.string().optional(),
-        headerFont: z.string().optional(),
-        bodyFont: z.string().optional(),
+        headerFont: z.enum([
+          Object.values(Font)[0],
+          ...Object.values(Font).splice(1),
+        ]),
+        bodyFont: z.enum([
+          Object.values(Font)[0],
+          ...Object.values(Font).splice(1),
+        ]),
         primaryColor: z.string().optional(),
         secondaryColor: z.string().optional(),
         accentColor: z.string().optional(),
-        layout: z.string().optional(),
+        layout: z.enum([
+          Object.values(Layout)[0],
+          ...Object.values(Layout).splice(1),
+        ]),
         description: z.string().optional(),
         longDescription: z.string().optional(),
         eeocEnabled: z.boolean().optional(),
@@ -189,57 +199,26 @@ router.put(
       })
       .parse(req.params);
 
-    // Header font -- Convert headerFont to EnumFontFieldUpdateOperationsInput
-    const prismaHeaderFont = headerFont as Font;
-
-    // Body font -- Convert bodyFont to EnumFontFieldUpdateOperationsInput
-    const prismaBodyFont = bodyFont as Font;
-
-    // Layout -- Convert layout to EnumLayoutFieldUpdateOperationsInput
-    const prismaLayout = layout as Layout;
-
     let imageId;
     if (dataUrl) {
-      // Extract Mime and Buffer from dataUrl
-      const mime = dataUrl?.split(":")[1].split(";")[0];
-      const base64 = dataUrl?.split(",")[1];
-      const buffer = Buffer.from(base64, "base64");
-
       imageId = nano_id();
-      // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
       const imageKey = `${organizationId}/logos/${imageId}`;
-
-      // Upload the image to S3
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: process.env.S3_BUCKET_NAME!,
-          Body: buffer,
-          ContentType: mime,
-          Key: imageKey,
-        })
-      );
+      await UploadToS3(dataUrl, imageKey);
     }
 
     let imageIdBanner;
     if (dataUrlBanner) {
-      // Extract Mime and Buffer from dataUrl
-      const mime = dataUrlBanner?.split(":")[1].split(";")[0];
-      const base64 = dataUrlBanner?.split(",")[1];
-      const buffer = Buffer.from(base64, "base64");
-
       imageIdBanner = nano_id();
-      // Unique key for the s3 bucket upload -- need to change nano_id to be the image id that was created from a nano id
       const imageKey = `${organizationId}/banners/${imageIdBanner}`;
 
-      // Upload the image to S3
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: process.env.S3_BUCKET_NAME!,
-          Body: buffer,
-          ContentType: mime,
-          Key: imageKey,
-        })
-      );
+      await UploadToS3(dataUrlBanner, imageKey);
+    }
+
+    if (typeof eeocEnabled === "boolean" && eeocEnabled === false) {
+      veteranEnabled = false;
+      disabilityEnabled = false;
+      raceEnabled = false;
+      genderEnabled = false;
     }
 
     const organization = await prisma.organization.update({
@@ -253,12 +232,12 @@ router.put(
       },
       data: {
         title,
-        headerFont: prismaHeaderFont,
-        bodyFont: prismaBodyFont,
+        headerFont,
+        bodyFont,
         primaryColor,
         secondaryColor,
         accentColor,
-        layout: prismaLayout,
+        layout,
         description,
         longDescription,
         eeocEnabled,
