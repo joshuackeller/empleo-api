@@ -81,13 +81,24 @@ router.put(
   handler(async (req: AdminRequest, res) => {
     const data = z
       .object({
-        jobTitle: z.string(),
+        jobTitle: z.string().optional(),
         jobDescription: z.string().optional(),
         jobRequirements: z.string().optional(),
         employmentType: z.string().optional(),
         location: z.string().optional(),
         salaryRange: z.string().optional(),
-        published: z.boolean(),
+        published: z.boolean().optional(),
+        linkedInUrlEnabled: z.boolean().optional(),
+        noteEnabled: z.boolean().optional(),
+        resumeEnabled: z.boolean().optional(),
+        coverLetterEnabled: z.boolean().optional(),
+        availableStartDateEnabled: z.boolean().optional(),
+        phoneEnabled: z.boolean().optional(),
+        addressEnabled: z.boolean().optional(),
+        cityEnabled: z.boolean().optional(),
+        stateEnabled: z.boolean().optional(),
+        zipEnabled: z.boolean().optional(),
+        usAuthorizedEnabled: z.boolean().optional(),
       })
       .parse(req.body);
 
