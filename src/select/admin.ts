@@ -49,6 +49,13 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   layout: true,
   description: true,
   longDescription: true,
+
+  eeocEnabled: true,
+  veteranEnabled: true,
+  disabilityEnabled: true,
+  raceEnabled: true,
+  genderEnabled: true,
+
   createdAt: true,
   updatedAt: true,
 };

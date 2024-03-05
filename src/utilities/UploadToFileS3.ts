@@ -8,7 +8,7 @@ const s3 = new S3({
   },
 });
 
-const UploadToS3 = async (dataUrl: string, fileKey: string) => {
+const UploadToFileS3 = async (dataUrl: string, fileKey: string) => {
   // Extract Mime and Buffer from dataUrl
   const mime = dataUrl?.split(":")[1].split(";")[0];
   const base64 = dataUrl?.split(",")[1];
@@ -25,4 +25,4 @@ const UploadToS3 = async (dataUrl: string, fileKey: string) => {
   );
 };
 
-export default UploadToS3;
+export default UploadToFileS3;
