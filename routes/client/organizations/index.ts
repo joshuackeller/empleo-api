@@ -26,16 +26,6 @@ router.get(
       })
       .parse(req.params);
 
-    // const thisSlug = req.headers.organization;
-
-    // await prisma.listing.findMany({
-    //   where: {
-    //     organization: {
-    //       slug: thisSlug,
-    //     }
-    //   }
-    // })
-
     const orgKey = RedisKeys.organizationBySlug(slug);
 
     let organization = await redis.get(orgKey);

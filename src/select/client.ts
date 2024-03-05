@@ -22,13 +22,11 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   layout: true,
   description: true,
   longDescription: true,
-
   eeocEnabled: true,
   veteranEnabled: true,
   disabilityEnabled: true,
   raceEnabled: true,
   genderEnabled: true,
-
   createdAt: true,
   updatedAt: true,
 };
@@ -45,6 +43,17 @@ export const BaseListingSelect: Prisma.ListingSelect = {
   salaryRange: true,
   jobDescription: true,
   jobRequirements: true,
+  linkedInUrlEnabled: true,
+  noteEnabled: true,
+  resumeEnabled: true,
+  coverLetterEnabled: true,
+  availableStartDateEnabled: true,
+  phoneEnabled: true,
+  addressEnabled: true,
+  cityEnabled: true,
+  stateEnabled: true,
+  zipEnabled: true,
+  usAuthorizedEnabled: true,
   createdAt: true,
   updatedAt: true,
 };
