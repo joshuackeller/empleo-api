@@ -7,11 +7,11 @@ import { ApplicationSelect } from "../../../../src/select/client";
 import OrgMiddleware from "../../../../src/middleware/client/OrgMiddleware";
 import AuthMiddleware from "../../../../src/middleware/client/AuthMiddleware";
 import nano_id from "../../../../src/utilities/nano_id";
-import { Prisma } from "@prisma/client";
+import { Gender, Prisma } from "@prisma/client";
 import { ClientError } from "../../../../src/utilities/errors";
 import GetSignedUrl from "../../../../src/utilities/GetSignedUrl";
 import UploadToFileS3 from "../../../../src/utilities/UploadToFileS3";
-//
+
 const router = express.Router({ mergeParams: true });
 
 router.use(OrgMiddleware);
@@ -64,11 +64,22 @@ router.post(
         linkedInUrl: z.string().optional(),
         phone: z.string().optional(),
         note: z.string().optional(),
-        availableStartDate: z.date().optional(),
+        availableStartDate: z.string().optional(),
         resume: z.any().optional(),
         resumeName: z.any().optional(),
         coverLetter: z.any().optional(),
         coverLetterName: z.any().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        zip: z.string().optional(),
+        usAuthorized: z.boolean().optional(),
+        eeocRace: z.string().optional(),
+        eeocVeteranStatus: z.string().optional(),
+        eeocDisabilityStatus: z.string().optional(),
+        eeocGender: z
+          .enum([Object.values(Gender)[0], ...Object.values(Gender)])
+          .optional(),
       })
       .parse(req.body);
 

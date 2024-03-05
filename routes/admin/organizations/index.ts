@@ -14,19 +14,10 @@ import {
   UpdateProjectDomain,
 } from "../../../src/utilities/domains";
 import { ClientError } from "../../../src/utilities/errors";
-import { PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 import { Font } from "@prisma/client";
 import { Layout } from "@prisma/client";
 import axios from "axios";
 import UploadToS3 from "../../../src/utilities/UploadToS3";
-
-const s3 = new S3({
-  region: "us-east-1",
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY!,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-  },
-});
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
