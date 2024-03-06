@@ -103,6 +103,7 @@ model Listing {
     location                  String?
     employmentType            String?       @map("employment_type")
     salaryRange               String?       @map("salary_range")
+    shortDescription          String?       @map("short_description")
     jobDescription            String?       @map("job_description")
     jobRequirements           String?       @map("job_requirements")
     createdAt                 DateTime      @default(now()) @map("created_at")
