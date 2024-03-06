@@ -54,6 +54,7 @@ router.post(
       .object({
         jobTitle: z.string(),
         jobDescription: z.string().optional(),
+        shortDescrition: z.string().optional(),
         jobRequirements: z.string().optional(),
         employmentType: z.string().optional(),
         location: z.string().optional(),
@@ -82,6 +83,7 @@ router.put(
     const data = z
       .object({
         jobTitle: z.string().optional(),
+        shortDescription: z.string().optional(),
         jobDescription: z.string().optional(),
         jobRequirements: z.string().optional(),
         employmentType: z.string().optional(),
