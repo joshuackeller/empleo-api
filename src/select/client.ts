@@ -42,6 +42,7 @@ export const BaseListingSelect: Prisma.ListingSelect = {
   employmentType: true,
   salaryRange: true,
   jobDescription: true,
+  shortDescription: true,
   jobRequirements: true,
   linkedInUrlEnabled: true,
   noteEnabled: true,

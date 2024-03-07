@@ -10,7 +10,6 @@ import {
   ApplicationSelect,
 } from "../../../src/select/admin";
 import GetSignedUrl from "../../../src/utilities/GetSignedUrl";
-import { F } from "@upstash/redis/zmscore-a4ec4c2a";
 import { Status } from "@prisma/client";
 import nano_id from "../../../src/utilities/nano_id";
 
@@ -98,6 +97,7 @@ router.get(
         applicationId: applicationId,
         organizationId: req.organizationId,
       },
+      orderBy: { createdAt: "desc" },
       select: ApplicationNoteSelect,
     });
 
