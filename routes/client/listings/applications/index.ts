@@ -102,7 +102,7 @@ router.post(
       }
       coverLetterId = nano_id();
       coverLetterKey = `${organizationId}/coverLetter/${coverLetterId}`;
-      await UploadToFileS3(resume, coverLetterKey);
+      await UploadToFileS3(coverLetter, coverLetterKey);
     }
 
     try {
