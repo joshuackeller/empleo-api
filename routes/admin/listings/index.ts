@@ -59,7 +59,7 @@ router.post(
         employmentType: z.string().optional(),
         location: z.string().optional(),
         salaryRange: z.string().optional(),
-        published: z.boolean(),
+        published: z.boolean().default(false).optional(),
       })
       .parse(req.body);
 
