@@ -94,33 +94,42 @@ model Password {
     @@map("password")
 }
 
+enum EmploymentType {
+    full_time
+    part_time
+    seasonal
+    internship
+    contract
+    temporary
+}
+
 model Listing {
-    id                        String        @id
-    organizationId            String?       @map("organization_id")
-    organization              Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    published                 Boolean       @default(false)
-    jobTitle                  String        @map("job_title")
+    id                        String          @id
+    organizationId            String?         @map("organization_id")
+    organization              Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    published                 Boolean         @default(false)
+    jobTitle                  String          @map("job_title")
     location                  String?
-    employmentType            String?       @map("employment_type")
-    salaryRange               String?       @map("salary_range")
-    shortDescription          String?       @map("short_description")
-    jobDescription            String?       @map("job_description")
-    jobRequirements           String?       @map("job_requirements")
-    createdAt                 DateTime      @default(now()) @map("created_at")
-    updatedAt                 DateTime      @updatedAt @map("updated_at")
+    employmentType            EmploymentType? @map("employment_type")
+    salaryRange               String?         @map("salary_range")
+    shortDescription          String?         @map("short_description")
+    jobDescription            String?         @map("job_description")
+    jobRequirements           String?         @map("job_requirements")
+    createdAt                 DateTime        @default(now()) @map("created_at")
+    updatedAt                 DateTime        @updatedAt @map("updated_at")
     Application               Application[]
     // ENABLE FIELDS
-    linkedInUrlEnabled        Boolean       @default(true) @map("linkedin_url_enabled")
-    noteEnabled               Boolean       @default(true) @map("note_enabled")
-    resumeEnabled             Boolean       @default(true) @map("resume_enabled")
-    coverLetterEnabled        Boolean       @default(false) @map("cover_letter_enabled")
-    availableStartDateEnabled Boolean       @default(false) @map("available_start_date_enabled")
-    phoneEnabled              Boolean       @default(false) @map("phone_enabled")
-    addressEnabled            Boolean       @default(false) @map("address_enabled")
-    cityEnabled               Boolean       @default(false) @map("city_enabled")
-    stateEnabled              Boolean       @default(false) @map("state_enabled")
-    zipEnabled                Boolean       @default(false) @map("zip_enabled")
-    usAuthorizedEnabled       Boolean       @default(false) @map("us_authorized_enabled")
+    linkedInUrlEnabled        Boolean         @default(true) @map("linkedin_url_enabled")
+    noteEnabled               Boolean         @default(true) @map("note_enabled")
+    resumeEnabled             Boolean         @default(true) @map("resume_enabled")
+    coverLetterEnabled        Boolean         @default(false) @map("cover_letter_enabled")
+    availableStartDateEnabled Boolean         @default(false) @map("available_start_date_enabled")
+    phoneEnabled              Boolean         @default(false) @map("phone_enabled")
+    addressEnabled            Boolean         @default(false) @map("address_enabled")
+    cityEnabled               Boolean         @default(false) @map("city_enabled")
+    stateEnabled              Boolean         @default(false) @map("state_enabled")
+    zipEnabled                Boolean         @default(false) @map("zip_enabled")
+    usAuthorizedEnabled       Boolean         @default(false) @map("us_authorized_enabled")
 
     @@unique([organizationId, id])
     @@index([organizationId])
