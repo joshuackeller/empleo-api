@@ -7,6 +7,7 @@ import { z } from "zod";
 import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
 import { ApplicationSelect, ListingSelect } from "../../../src/select/admin";
+import { EmploymentType } from "@prisma/client";
 
 const router = express.Router();
 
@@ -56,7 +57,12 @@ router.post(
         jobDescription: z.string().optional(),
         shortDescrition: z.string().optional(),
         jobRequirements: z.string().optional(),
-        employmentType: z.string().optional(),
+        employmentType: z
+          .enum([
+            Object.values(EmploymentType)[0],
+            ...Object.values(EmploymentType).slice(1),
+          ])
+          .optional(),
         location: z.string().optional(),
         salaryRange: z.string().optional(),
         published: z.boolean(),
@@ -86,7 +92,12 @@ router.put(
         shortDescription: z.string().optional(),
         jobDescription: z.string().optional(),
         jobRequirements: z.string().optional(),
-        employmentType: z.string().optional(),
+        employmentType: z
+          .enum([
+            Object.values(EmploymentType)[0],
+            ...Object.values(EmploymentType).slice(1),
+          ])
+          .optional(),
         location: z.string().optional(),
         salaryRange: z.string().optional(),
         published: z.boolean().optional(),
