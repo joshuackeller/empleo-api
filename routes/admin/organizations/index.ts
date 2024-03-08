@@ -170,10 +170,9 @@ router.put(
         primaryColor: z.string().optional(),
         secondaryColor: z.string().optional(),
         accentColor: z.string().optional(),
-        layout: z.enum([
-          Object.values(Layout)[0],
-          ...Object.values(Layout).splice(1),
-        ]),
+        layout: z
+          .enum([Object.values(Layout)[0], ...Object.values(Layout).splice(1)])
+          .optional(),
         description: z.string().optional(),
         longDescription: z.string().optional(),
         eeocEnabled: z.boolean().optional(),

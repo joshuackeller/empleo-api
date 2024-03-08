@@ -1,5 +1,5 @@
 import prisma from "../../../src/utilities/prisma";
-import express, { application } from "express";
+import express from "express";
 import handler from "../../../src/middleware/handler";
 import { AdminRequest } from "../../../src/utilities/interfaces";
 import AuthMiddleware from "../../../src/middleware/admin/AuthMiddleware";

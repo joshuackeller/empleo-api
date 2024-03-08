@@ -118,23 +118,36 @@ export const FileSelect: Prisma.FileSelect = {
 
 export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   id: true,
+  listingId: true,
+  userId: true,
+  status: true,
   firstName: true,
   lastName: true,
-  phone: true,
-  status: true,
-  availableStartDate: true,
+  linkedInUrl: true,
   note: true,
-  resume: { select: FileSelect },
-  coverLetter: {
-    select: FileSelect,
-  },
+  resumeId: true,
+  coverLetterId: true,
+  availableStartDate: true,
+  phone: true,
+  address: true,
+  city: true,
+  state: true,
+  zip: true,
+  usAuthorized: true,
+  eeocRace: true,
+  eeocVeteranStatus: true,
+  eeocDisabilityStatus: true,
+  eeocGender: true,
   createdAt: true,
   updatedAt: true,
-  userId: true,
 };
 
 export const ApplicationSelect: Prisma.ApplicationSelect = {
   ...BaseApplicationSelect,
+  resume: { select: FileSelect },
+  coverLetter: {
+    select: FileSelect,
+  },
 };
 
 export const BaseApplicationNoteSelect: Prisma.ApplicationNoteSelect = {
