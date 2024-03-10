@@ -67,7 +67,7 @@ router.post(
   handler(async (req: AdminRequest, res) => {
     const { email } = z
       .object({
-        email: z.string().email(),
+        email: z.string().email().toLowerCase(),
       })
       .parse(req.body);
 
