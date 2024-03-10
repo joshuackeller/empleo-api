@@ -167,13 +167,13 @@ router.put(
           Object.values(Font)[0],
           ...Object.values(Font).splice(1),
         ]),
-        primaryColor: z.string().optional(),
-        secondaryColor: z.string().optional(),
-        accentColor: z.string().optional(),
+        primaryColor: z.string().nullable().optional(),
+        secondaryColor: z.string().nullable().optional(),
+        accentColor: z.string().nullable().optional(),
         layout: z
           .enum([Object.values(Layout)[0], ...Object.values(Layout).splice(1)])
           .optional(),
-        description: z.string().optional(),
+        description: z.string().nullable().optional(),
         longDescription: z.string().optional(),
         eeocEnabled: z.boolean().optional(),
         veteranEnabled: z.boolean().optional(),
