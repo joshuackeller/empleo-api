@@ -99,6 +99,11 @@ export const BaseListingSelect: Prisma.ListingSelect = {
   usAuthorizedEnabled: true,
   createdAt: true,
   updatedAt: true,
+  _count: {
+    select: {
+      applications: true,
+    },
+  },
 };
 export const ListingSelect: Prisma.ListingSelect = {
   ...BaseListingSelect,

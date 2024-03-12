@@ -117,7 +117,7 @@ model Listing {
     jobRequirements           String?         @map("job_requirements")
     createdAt                 DateTime        @default(now()) @map("created_at")
     updatedAt                 DateTime        @updatedAt @map("updated_at")
-    Application               Application[]
+    applications              Application[]
     // ENABLE FIELDS
     linkedInUrlEnabled        Boolean         @default(true) @map("linkedin_url_enabled")
     noteEnabled               Boolean         @default(true) @map("note_enabled")
