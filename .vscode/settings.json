@@ -3,6 +3,5 @@
   "editor.formatOnSave": true,
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
-  },
-  "workbench.colorTheme": "One Dark Pro"
+  }
 }
