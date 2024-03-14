@@ -227,11 +227,22 @@ model Image {
     @@map("image")
 }
 
+enum FileType {
+    doc
+    docx
+    pdf
+    png
+    jpeg
+    pages
+    unknown
+}
+
 model File {
     id                     String       @id
     organizationId         String       @map("organization_id")
     organization           Organization @relation("OrganizationFiles", fields: [organizationId], references: [id])
     name                   String
+    fileType               FileType     @map("file_type")
     s3Key                  String       @map("s3_key")
     applicationResume      Application? @relation("ApplicationResume")
     applicationCoverLetter Application? @relation("ApplicationCoverLetter")

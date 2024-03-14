@@ -11,6 +11,7 @@ import { Gender, Prisma } from "@prisma/client";
 import { ClientError } from "../../../../src/utilities/errors";
 import GetSignedUrl from "../../../../src/utilities/GetSignedUrl";
 import UploadToFileS3 from "../../../../src/utilities/UploadToFileS3";
+import GetFileType from "../../../../src/utilities/GetFileType";
 
 const router = express.Router({ mergeParams: true });
 
@@ -87,13 +88,14 @@ router.post(
       where: { slug: req.slug },
     });
 
-    let resumeId, resumeKey, coverLetterId, coverLetterKey;
+    let resumeId, resumeFileType, resumeKey, coverLetterId, coverLetterKey;
     if (resume) {
       if (!resumeName) {
         throw new ClientError("No resume fiile name provided");
       }
       resumeId = nano_id();
       resumeKey = `${organizationId}/resumes/${resumeId}`;
+      resumeFileType = GetFileType(resume);
       await UploadToFileS3(resume, resumeKey);
     }
     if (coverLetter) {
@@ -133,6 +135,7 @@ router.post(
                     },
                     name: resumeName,
                     s3Key: resumeKey,
+                    fileType: GetFileType(resume),
                   },
                 }
               : undefined,
@@ -146,6 +149,7 @@ router.post(
                     },
                     name: coverLetterName,
                     s3Key: coverLetterKey,
+                    fileType: GetFileType(resume),
                   },
                 }
               : undefined,
