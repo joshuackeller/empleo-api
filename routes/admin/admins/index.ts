@@ -10,6 +10,7 @@ import { AdminSelect } from "../../../src/select/admin";
 
 import { Redis } from "@upstash/redis";
 import RedisKeys from "../../../src/utilities/RedisKeys";
+import { Prisma } from "@prisma/client";
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -24,17 +25,32 @@ router.use(OrgMiddleware);
 router.get(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const admins = await prisma.admin.findMany({
-      where: {
-        organizations: {
-          some: {
-            id: req.organizationId,
-          },
+    const { page, pageSize } = z
+      .object({
+        page: z.string().optional().default("1").transform(Number),
+        pageSize: z.string().optional().default("10").transform(Number),
+      })
+      .parse(req.query);
+
+    const where: Prisma.AdminWhereInput = {
+      organizations: {
+        some: {
+          id: req.organizationId,
         },
       },
-      select: AdminSelect,
-    });
-    res.json(admins);
+    };
+
+    const [count, data] = await prisma.$transaction([
+      prisma.admin.count({ where }),
+      prisma.admin.findMany({
+        where,
+        take: pageSize,
+        skip: (page - 1) * pageSize,
+        select: AdminSelect,
+      }),
+    ]);
+
+    res.json({ count, data });
   })
 );
 
