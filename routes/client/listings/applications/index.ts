@@ -11,6 +11,7 @@ import { Gender, Prisma } from "@prisma/client";
 import { ClientError } from "../../../../src/utilities/errors";
 import GetSignedUrl from "../../../../src/utilities/GetSignedUrl";
 import UploadToFileS3 from "../../../../src/utilities/UploadToFileS3";
+import GetFileType from "../../../../src/utilities/GetFileType";
 
 const router = express.Router({ mergeParams: true });
 
@@ -133,6 +134,7 @@ router.post(
                     },
                     name: resumeName,
                     s3Key: resumeKey,
+                    fileType: GetFileType(resume),
                   },
                 }
               : undefined,
@@ -146,6 +148,7 @@ router.post(
                     },
                     name: coverLetterName,
                     s3Key: coverLetterKey,
+                    fileType: GetFileType(coverLetter),
                   },
                 }
               : undefined,

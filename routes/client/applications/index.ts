@@ -11,6 +11,7 @@ import { ClientError } from "../../../src/utilities/errors";
 import GetSignedUrl from "../../../src/utilities/GetSignedUrl";
 import UploadToFileS3 from "../../../src/utilities/UploadToFileS3";
 import { Gender } from "@prisma/client";
+import GetFileType from "../../../src/utilities/GetFileType";
 
 const router = express.Router();
 
@@ -129,14 +130,17 @@ router.put(
       where: { slug: req.slug },
     });
 
-    let resumeId, resumeKey, coverLetterId, coverLetterKey;
+    let resumeId, resumeKey, resumeFileType, coverLetterId, coverLetterKey;
     if (resume) {
       // Add logic to delete old resume
       if (!resumeName) {
         throw new ClientError("No resume fiile name provided");
       }
+      // Console log first 20 characters of resume
+      console.log("RESUME", resume.slice(0, 20));
       resumeId = nano_id();
       resumeKey = `${organizationId}/resumes/${resumeId}`;
+      resumeFileType = GetFileType(resume);
       await UploadToFileS3(resume, resumeKey);
     }
     if (coverLetter) {
@@ -148,6 +152,8 @@ router.put(
       coverLetterKey = `${organizationId}/coverLetter/${coverLetterId}`;
       await UploadToFileS3(coverLetter, coverLetterKey);
     }
+
+    console.log("RESUME FILE TYPE", resumeFileType);
 
     const application = await prisma.application.update({
       where: {
@@ -171,6 +177,7 @@ router.put(
                   },
                   name: resumeName,
                   s3Key: resumeKey,
+                  fileType: resumeFileType,
                 },
               }
             : undefined,
@@ -184,6 +191,7 @@ router.put(
                   },
                   name: coverLetterName,
                   s3Key: coverLetterKey,
+                  fileType: GetFileType(coverLetter),
                 },
               }
             : undefined,
