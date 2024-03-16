@@ -7,7 +7,7 @@ import { z } from "zod";
 import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
 import { ApplicationSelect, ListingSelect } from "../../../src/select/admin";
-import { EmploymentType } from "@prisma/client";
+import { EmploymentType, Prisma } from "@prisma/client";
 
 const router = express.Router();
 
@@ -17,13 +17,31 @@ router.use(OrgMiddleware);
 router.get(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const listings = await prisma.listing.findMany({
-      where: {
-        organizationId: req.organizationId,
-      },
-      select: ListingSelect,
-    });
-    res.json(listings);
+    const { page, pageSize } = z
+      .object({
+        page: z.string().optional().default("1").transform(Number),
+        pageSize: z.string().optional().default("10").transform(Number),
+      })
+      .parse(req.query);
+
+    const where: Prisma.ListingWhereInput = {
+      organizationId: req.organizationId,
+    };
+
+    const [count, data] = await prisma.$transaction([
+      prisma.listing.count({ where }),
+      prisma.listing.findMany({
+        where,
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: pageSize,
+        skip: (page - 1) * pageSize,
+        select: ListingSelect,
+      }),
+    ]);
+
+    res.json({ count, data });
   })
 );
 
@@ -161,16 +179,32 @@ router.get("/:listingId/applications", async (req: AdminRequest, res) => {
       listingId: z.string(),
     })
     .parse(req.params);
+  const { page, pageSize } = z
+    .object({
+      page: z.string().optional().default("1").transform(Number),
+      pageSize: z.string().optional().default("10").transform(Number),
+    })
+    .parse(req.query);
 
-  const listings = await prisma.application.findMany({
-    where: {
-      listingId: listingId,
-      organizationId: req.organizationId,
-    },
-    select: ApplicationSelect,
-  });
+  const where: Prisma.ApplicationWhereInput = {
+    listingId: listingId,
+    organizationId: req.organizationId,
+  };
 
-  res.send(listings);
+  const [count, data] = await prisma.$transaction([
+    prisma.application.count({ where }),
+    prisma.application.findMany({
+      where,
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+      select: ApplicationSelect,
+    }),
+  ]);
+
+  res.send({ count, data });
 });
 
 export default router;
