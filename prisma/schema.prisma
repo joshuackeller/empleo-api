@@ -242,7 +242,7 @@ model File {
     organizationId         String       @map("organization_id")
     organization           Organization @relation("OrganizationFiles", fields: [organizationId], references: [id])
     name                   String
-    fileType               FileType     @map("file_type")
+    fileType               FileType     @default(unknown) @map("file_type")
     s3Key                  String       @map("s3_key")
     applicationResume      Application? @relation("ApplicationResume")
     applicationCoverLetter Application? @relation("ApplicationCoverLetter")

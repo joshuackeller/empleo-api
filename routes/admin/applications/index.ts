@@ -12,6 +12,7 @@ import {
 import GetSignedUrl from "../../../src/utilities/GetSignedUrl";
 import { Status } from "@prisma/client";
 import nano_id from "../../../src/utilities/nano_id";
+import GetFileType from "../../../src/utilities/GetFileType";
 
 const router = express.Router();
 
@@ -69,6 +70,7 @@ router.get(
       (application.resume as any).url = await GetSignedUrl(
         application.resume.s3Key
       );
+      delete (application.resume as any).s3Key;
       delete (application.resume as any).s3Key;
     }
     if (application?.coverLetter) {

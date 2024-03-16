@@ -88,14 +88,13 @@ router.post(
       where: { slug: req.slug },
     });
 
-    let resumeId, resumeFileType, resumeKey, coverLetterId, coverLetterKey;
+    let resumeId, resumeKey, coverLetterId, coverLetterKey;
     if (resume) {
       if (!resumeName) {
         throw new ClientError("No resume fiile name provided");
       }
       resumeId = nano_id();
       resumeKey = `${organizationId}/resumes/${resumeId}`;
-      resumeFileType = GetFileType(resume);
       await UploadToFileS3(resume, resumeKey);
     }
     if (coverLetter) {
@@ -149,7 +148,7 @@ router.post(
                     },
                     name: coverLetterName,
                     s3Key: coverLetterKey,
-                    fileType: GetFileType(resume),
+                    fileType: GetFileType(coverLetter),
                   },
                 }
               : undefined,
