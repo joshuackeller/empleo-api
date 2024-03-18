@@ -150,6 +150,7 @@ export const BaseApplicationSelect: Prisma.ApplicationSelect = {
 
 export const ApplicationSelect: Prisma.ApplicationSelect = {
   ...BaseApplicationSelect,
+  user: { select: BaseUserSelect },
   resume: { select: FileSelect },
   coverLetter: {
     select: FileSelect,

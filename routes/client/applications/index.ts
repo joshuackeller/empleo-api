@@ -130,7 +130,12 @@ router.put(
       where: { slug: req.slug },
     });
 
-    let resumeId, resumeKey, resumeFileType, coverLetterId, coverLetterKey;
+    let resumeId,
+      resumeKey,
+      resumeFileType,
+      coverLetterId,
+      coverLetterKey,
+      coverLetterFileType;
     if (resume) {
       // Add logic to delete old resume
       if (!resumeName) {
@@ -150,6 +155,7 @@ router.put(
       }
       coverLetterId = nano_id();
       coverLetterKey = `${organizationId}/coverLetter/${coverLetterId}`;
+      coverLetterFileType = GetFileType(coverLetter);
       await UploadToFileS3(coverLetter, coverLetterKey);
     }
 
@@ -191,7 +197,7 @@ router.put(
                   },
                   name: coverLetterName,
                   s3Key: coverLetterKey,
-                  fileType: GetFileType(coverLetter),
+                  fileType: coverLetterFileType,
                 },
               }
             : undefined,
