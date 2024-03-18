@@ -49,6 +49,13 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   layout: true,
   description: true,
   longDescription: true,
+
+  eeocEnabled: true,
+  veteranEnabled: true,
+  disabilityEnabled: true,
+  raceEnabled: true,
+  genderEnabled: true,
+
   createdAt: true,
   updatedAt: true,
 };
@@ -77,55 +84,86 @@ export const BaseListingSelect: Prisma.ListingSelect = {
   employmentType: true,
   salaryRange: true,
   jobDescription: true,
+  shortDescription: true,
   jobRequirements: true,
+  linkedInUrlEnabled: true,
+  noteEnabled: true,
+  resumeEnabled: true,
+  coverLetterEnabled: true,
+  availableStartDateEnabled: true,
+  phoneEnabled: true,
+  addressEnabled: true,
+  cityEnabled: true,
+  stateEnabled: true,
+  zipEnabled: true,
+  usAuthorizedEnabled: true,
   createdAt: true,
   updatedAt: true,
+  _count: {
+    select: {
+      applications: true,
+    },
+  },
 };
 export const ListingSelect: Prisma.ListingSelect = {
   ...BaseListingSelect,
 };
 
+export const BaseFileSelect: Prisma.FileSelect = {
+  id: true,
+  name: true,
+  s3Key: true,
+  fileType: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+export const FileSelect: Prisma.FileSelect = {
+  ...BaseFileSelect,
+};
+
 export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   id: true,
+  listingId: true,
+  userId: true,
+  status: true,
   firstName: true,
   lastName: true,
+  linkedInUrl: true,
+  note: true,
+  resumeId: true,
+  coverLetterId: true,
+  availableStartDate: true,
   phone: true,
-  gender: true,
   address: true,
   city: true,
   state: true,
   zip: true,
-  usCitizen: true,
   usAuthorized: true,
-  prevEmployee: true,
-  nonCompete: true,
-  olderThan18: true,
-  race: true,
-  hispanicOrLatino: true,
-  veteranStatus: true,
-  disabilityStatus: true,
-  workVisa: true,
-  workVisaType: true,
-  language: true,
-  availableStartDate: true,
-  note: true,
-  relocate: true,
-  resume: {
-    select: {
-      id: true,
-      url: true,
-    },
-  },
-  coverLetter: {
-    select: {
-      id: true,
-      url: true,
-    },
-  },
+  eeocRace: true,
+  eeocVeteranStatus: true,
+  eeocDisabilityStatus: true,
+  eeocGender: true,
   createdAt: true,
   updatedAt: true,
-  userId: true,
 };
+
 export const ApplicationSelect: Prisma.ApplicationSelect = {
   ...BaseApplicationSelect,
+  resume: { select: FileSelect },
+  coverLetter: {
+    select: FileSelect,
+  },
+};
+
+export const BaseApplicationNoteSelect: Prisma.ApplicationNoteSelect = {
+  id: true,
+  text: true,
+  admin: { select: BaseAdminSelect },
+  createdAt: true,
+  updatedAt: true,
+};
+
+export const ApplicationNoteSelect: Prisma.ApplicationNoteSelect = {
+  ...BaseApplicationNoteSelect,
 };

@@ -22,23 +22,45 @@ export const BaseOrganizationSelect: Prisma.OrganizationSelect = {
   layout: true,
   description: true,
   longDescription: true,
+  eeocEnabled: true,
+  veteranEnabled: true,
+  disabilityEnabled: true,
+  raceEnabled: true,
+  genderEnabled: true,
   createdAt: true,
   updatedAt: true,
 };
+
 export const OrganizationSelect: Prisma.OrganizationSelect = {
   ...BaseOrganizationSelect,
 };
 
-export const BaseClientListingSelect: Prisma.ListingSelect = {
+export const BaseListingSelect: Prisma.ListingSelect = {
   id: true,
   jobTitle: true,
   location: true,
   employmentType: true,
   salaryRange: true,
   jobDescription: true,
+  shortDescription: true,
   jobRequirements: true,
+  linkedInUrlEnabled: true,
+  noteEnabled: true,
+  resumeEnabled: true,
+  coverLetterEnabled: true,
+  availableStartDateEnabled: true,
+  phoneEnabled: true,
+  addressEnabled: true,
+  cityEnabled: true,
+  stateEnabled: true,
+  zipEnabled: true,
+  usAuthorizedEnabled: true,
   createdAt: true,
   updatedAt: true,
+};
+
+export const ListingSelect: Prisma.ListingSelect = {
+  ...BaseListingSelect,
 };
 
 export const BaseUserSelect: Prisma.UserSelect = {
@@ -48,50 +70,49 @@ export const BaseUserSelect: Prisma.UserSelect = {
   updatedAt: true,
 };
 
-export const ClientListingSelect: Prisma.ListingSelect = {
-  ...BaseClientListingSelect,
+export const BaseFileSelect: Prisma.FileSelect = {
+  id: true,
+  name: true,
+  s3Key: true,
+  createdAt: true,
+  updatedAt: true,
 };
 
-export const BaseClientApplicationSelect: Prisma.ApplicationSelect = {
+export const FileSelect: Prisma.FileSelect = {
+  ...BaseFileSelect,
+};
+
+export const BaseApplicationSelect: Prisma.ApplicationSelect = {
   id: true,
+  listingId: true,
+  userId: true,
+  status: true,
   firstName: true,
   lastName: true,
+  linkedInUrl: true,
+  note: true,
+  resumeId: true,
+  coverLetterId: true,
+  availableStartDate: true,
   phone: true,
   address: true,
   city: true,
   state: true,
   zip: true,
-  usCitizen: true,
   usAuthorized: true,
-  prevEmployee: true,
-  nonCompete: true,
-  olderThan18: true,
-  race: true,
-  hispanicOrLatino: true,
-  veteranStatus: true,
-  disabilityStatus: true,
-  workVisa: true,
-  workVisaType: true,
-  language: true,
-  availableStartDate: true,
-  relocate: true,
-  note: true,
-  resume: {
-    select: {
-      url: true,
-    },
-  },
-  coverLetter: {
-    select: {
-      url: true,
-    },
-  },
+  eeocRace: true,
+  eeocVeteranStatus: true,
+  eeocDisabilityStatus: true,
+  eeocGender: true,
   createdAt: true,
   updatedAt: true,
 };
 
-export const ClientApplicationSelect: Prisma.ApplicationSelect = {
-  ...BaseClientApplicationSelect,
+export const ApplicationSelect: Prisma.ApplicationSelect = {
+  ...BaseApplicationSelect,
+  resume: { select: BaseFileSelect },
+  coverLetter: { select: BaseFileSelect },
+  listing: { select: BaseListingSelect },
 };
 
 export const UserSelect: Prisma.UserSelect = {

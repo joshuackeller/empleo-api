@@ -6,6 +6,7 @@ import { z } from "zod";
 import { OrganizationSelect } from "../../../src/select/client";
 import { Redis } from "@upstash/redis";
 import RedisKeys from "../../../src/utilities/RedisKeys";
+import OrgMiddleware from "../../../src/middleware/client/OrgMiddleware";
 
 const redis = new Redis({
   url: "https://us1-endless-lemur-38129.upstash.io",
@@ -13,6 +14,8 @@ const redis = new Redis({
 });
 
 const router = express.Router();
+
+router.use(OrgMiddleware);
 
 router.get(
   "/:slug",
@@ -22,16 +25,6 @@ router.get(
         slug: z.string(),
       })
       .parse(req.params);
-
-    // const thisSlug = req.headers.organization;
-
-    // await prisma.listing.findMany({
-    //   where: {
-    //     organization: {
-    //       slug: thisSlug,
-    //     }
-    //   }
-    // })
 
     const orgKey = RedisKeys.organizationBySlug(slug);
 
