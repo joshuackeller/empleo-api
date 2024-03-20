@@ -8,6 +8,7 @@ import OrgMiddleware from "../../../src/middleware/admin/OrgMiddleware";
 import nano_id from "../../../src/utilities/nano_id";
 import { ApplicationSelect, ListingSelect } from "../../../src/select/admin";
 import { EmploymentType, Prisma } from "@prisma/client";
+import ParseOrderBy from "../../../src/utilities/ParseOrderBy";
 
 const router = express.Router();
 
@@ -17,10 +18,13 @@ router.use(OrgMiddleware);
 router.get(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const { page, pageSize } = z
+    const { page, pageSize, orderBy, sort, direction } = z
       .object({
         page: z.string().optional().default("1").transform(Number),
         pageSize: z.string().optional().default("10").transform(Number),
+        orderBy: z.string().optional(),
+        sort: z.string().optional(),
+        direction: z.string().optional(),
       })
       .parse(req.query);
 
@@ -32,12 +36,13 @@ router.get(
       prisma.listing.count({ where }),
       prisma.listing.findMany({
         where,
-        orderBy: {
-          createdAt: "desc",
-        },
+        // orderBy: {
+        //   createdAt: "desc",
+        // },
         take: pageSize,
         skip: (page - 1) * pageSize,
         select: ListingSelect,
+        orderBy: ParseOrderBy("createdAt:desc", sort && direction ? `${sort}:${direction}` : orderBy),
       }),
     ]);
 
