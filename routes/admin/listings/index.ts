@@ -184,10 +184,13 @@ router.get("/:listingId/applications", async (req: AdminRequest, res) => {
       listingId: z.string(),
     })
     .parse(req.params);
-  const { page, pageSize } = z
+  const { page, pageSize, orderBy, sort, direction } = z
     .object({
       page: z.string().optional().default("1").transform(Number),
       pageSize: z.string().optional().default("10").transform(Number),
+      orderBy: z.string().optional(),
+      sort: z.string().optional(),
+      direction: z.string().optional(),
     })
     .parse(req.query);
 
@@ -200,12 +203,10 @@ router.get("/:listingId/applications", async (req: AdminRequest, res) => {
     prisma.application.count({ where }),
     prisma.application.findMany({
       where,
-      orderBy: {
-        createdAt: "desc",
-      },
       take: pageSize,
       skip: (page - 1) * pageSize,
       select: ApplicationSelect,
+      orderBy: ParseOrderBy("createdAt:desc", sort && direction ? `${sort}:${direction}` : orderBy),
     }),
   ]);
 

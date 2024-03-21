@@ -23,20 +23,12 @@ router.use(OrgMiddleware);
 router.get(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const { orderBy, sort, direction } = z
-      .object({
-        orderBy: z.string().optional(),
-        sort: z.string().optional(),
-        direction: z.string().optional(),
-      })
-      .parse(req.query);
 
     const applications = await prisma.application.findMany({
       where: {
         organizationId: req.organizationId,
       },
       select: ApplicationSelect,
-      orderBy: ParseOrderBy("createdAt:desc", sort && direction ? `${sort}:${direction}` : orderBy),
     });
 
     for (const application of applications) {
