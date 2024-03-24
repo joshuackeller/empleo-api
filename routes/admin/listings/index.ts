@@ -18,18 +18,28 @@ router.use(OrgMiddleware);
 router.get(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const { page, pageSize, orderBy, sort, direction } = z
+    const { page, pageSize, orderBy, sort, direction, search } = z
       .object({
         page: z.string().optional().default("1").transform(Number),
         pageSize: z.string().optional().default("10").transform(Number),
         orderBy: z.string().optional(),
         sort: z.string().optional(),
         direction: z.string().optional(),
+        search: z.string().optional(),
       })
       .parse(req.query);
 
     const where: Prisma.ListingWhereInput = {
       organizationId: req.organizationId,
+      OR: search
+        ? [
+            { jobTitle: { contains: search, mode: "insensitive" } },
+            { jobDescription: { contains: search, mode: "insensitive" } },
+            { location: { contains: search, mode: "insensitive" } },
+            { salaryRange: { contains: search, mode: "insensitive" } },
+            { shortDescription: { contains: search, mode: "insensitive" } },
+          ]
+        : undefined,
     };
 
     const [count, data] = await prisma.$transaction([
@@ -42,7 +52,10 @@ router.get(
         take: pageSize,
         skip: (page - 1) * pageSize,
         select: ListingSelect,
-        orderBy: ParseOrderBy("createdAt:desc", sort && direction ? `${sort}:${direction}` : orderBy),
+        orderBy: ParseOrderBy(
+          "createdAt:desc",
+          sort && direction ? `${sort}:${direction}` : orderBy
+        ),
       }),
     ]);
 
@@ -206,7 +219,10 @@ router.get("/:listingId/applications", async (req: AdminRequest, res) => {
       take: pageSize,
       skip: (page - 1) * pageSize,
       select: ApplicationSelect,
-      orderBy: ParseOrderBy("createdAt:desc", sort && direction ? `${sort}:${direction}` : orderBy),
+      orderBy: ParseOrderBy(
+        "createdAt:desc",
+        sort && direction ? `${sort}:${direction}` : orderBy
+      ),
     }),
   ]);
 

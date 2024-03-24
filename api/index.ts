@@ -26,6 +26,7 @@ app.use(
     origin: "*",
   })
 );
+
 app.use(express.json({ limit: "50mb" }));
 
 // TEST ENDPOINT
