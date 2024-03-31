@@ -9,7 +9,10 @@ import nano_id from "../../../src/utilities/nano_id";
 import { ApplicationSelect, ListingSelect } from "../../../src/select/admin";
 import { EmploymentType, Prisma } from "@prisma/client";
 import ParseOrderBy from "../../../src/utilities/ParseOrderBy";
+import { OpenAI } from "openai";
+import axios from "axios";
 
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const router = express.Router();
 
 router.use(AuthMiddleware);
@@ -42,7 +45,10 @@ router.get(
         take: pageSize,
         skip: (page - 1) * pageSize,
         select: ListingSelect,
-        orderBy: ParseOrderBy("createdAt:desc", sort && direction ? `${sort}:${direction}` : orderBy),
+        orderBy: ParseOrderBy(
+          "createdAt:desc",
+          sort && direction ? `${sort}:${direction}` : orderBy
+        ),
       }),
     ]);
 
@@ -50,7 +56,7 @@ router.get(
   })
 );
 
-//updating record? (still working on)
+//updating record?
 router.get(
   "/:listingId",
   handler(async (req: AdminRequest, res) => {
@@ -156,6 +162,44 @@ router.put(
   })
 );
 
+//chatgpt response
+router.post(
+  "/:listingId/chatgpt",
+  handler(async (req: AdminRequest, res) => {
+    const { listingId } = req.params;
+    //const listing = await getListingById(listingId);
+    const listing = await prisma.listing.findUniqueOrThrow({
+      where: { id: listingId, organizationId: req.organizationId },
+      select: ListingSelect,
+    });
+    const prompt = req.body.prompt;
+
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant.",
+          },
+          {
+            role: "user",
+            content: `Please write a medium length job description in a professional format for the postition with the title: ${listing.jobTitle} and use the following instructions to do so ${prompt}`,
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    res.json({ text: response.data.choices[0].message.content, listingId });
+  })
+);
+
 //Delete Listing
 router.delete(
   "/:listingId",
@@ -206,7 +250,10 @@ router.get("/:listingId/applications", async (req: AdminRequest, res) => {
       take: pageSize,
       skip: (page - 1) * pageSize,
       select: ApplicationSelect,
-      orderBy: ParseOrderBy("createdAt:desc", sort && direction ? `${sort}:${direction}` : orderBy),
+      orderBy: ParseOrderBy(
+        "createdAt:desc",
+        sort && direction ? `${sort}:${direction}` : orderBy
+      ),
     }),
   ]);
 

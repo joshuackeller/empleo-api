@@ -24,6 +24,7 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^3.3.4",
+    "openai": "^4.31.0",
     "prisma": "^5.8.1",
     "react-color": "^2.19.3",
     "react-s3-uploader": "^5.0.0",

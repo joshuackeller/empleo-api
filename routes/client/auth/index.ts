@@ -88,13 +88,14 @@ router.use(OrgMiddleware);
 router.post(
   "/request_link",
   handler(async (req: ClientRequest, res) => {
-    const { email, cloudflareToken, returnRoute } = z
+    const { email, cloudflareToken, returnRoute, listingId } = z
       .object({
         email: z.string().email().toLowerCase(),
         cloudflareToken: z.string({
           required_error: "No Cloudflare Token Provided",
         }),
         returnRoute: z.string().optional(),
+        listingId: z.string().optional(),
       })
       .parse(req.body);
 
@@ -148,19 +149,45 @@ router.post(
       SecretToken.clientRequestLink
     );
 
+    let listing;
+    if (listingId) {
+      //query for listing
+      listing = await prisma.listing.findUnique({
+        where: {
+          id: listingId,
+        },
+      });
+    }
+
+    let html;
+    let text;
+    if (listing) {
+      html = `
+      <div>
+          <p>Click the following link to continue to ${organization.title} and finish your application for the ${listing.jobTitle} position:
+              <a href="${API_URL}/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}">https://${organization.slug}.empleo.work</a>
+          </p>
+      </div>
+      `;
+      text = `Click the following link to continue to ${organization.title} and finish your application for the ${listing.jobTitle} position: ${API_URL}/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}`;
+    } else {
+      html = `
+      <div>
+      <p>Click the following link to continue to ${organization.title}: 
+          <a href="${API_URL}/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}">https://${organization.slug}.empleo.work</a>
+      </p>
+  </div>
+  `;
+      text = `Click the following link to continue to ${organization.title}:  `;
+    }
+
     try {
       await resend.emails.send({
         from: `${organization.title} <no-reply@mail.empleo.work>`,
         to: [email],
         subject: `${organization.title} Link`,
-        html: `
-            <div>
-                <p>Click the following link to continue to ${organization.title}:
-                    <a href="${API_URL}/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}">https://api.empleo.work</a>
-                </p>
-            </div>
-            `,
-        text: `Click the following link to continue to ${organization.title}: ${API_URL}/client/auth/confirm_account?token=${token}&returnRoute=${returnRoute}`,
+        html: html,
+        text: text,
       });
     } catch (error) {
       console.error("Could not send email", error);
