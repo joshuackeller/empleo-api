@@ -26,13 +26,14 @@ router.use(OrgMiddleware);
 router.get(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const { page, pageSize, orderBy, sort, direction } = z
+    const { page, pageSize, orderBy, sort, direction, search } = z
       .object({
         page: z.string().optional().default("1").transform(Number),
         pageSize: z.string().optional().default("10").transform(Number),
         orderBy: z.string().optional(),
         sort: z.string().optional(),
         direction: z.string().optional(),
+        search: z.string().optional(),
       })
       .parse(req.query);
 
@@ -42,6 +43,13 @@ router.get(
           id: req.organizationId,
         },
       },
+      OR: search
+        ? [
+            { firstName: { contains: search, mode: "insensitive" } },
+            { lastName: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ]
+        : undefined,
     };
 
     const [count, data] = await prisma.$transaction([
@@ -52,7 +60,10 @@ router.get(
         skip: (page - 1) * pageSize,
         select: AdminSelect,
         // orderBy: ParseOrderBy("createdAt:desc", orderBy),
-        orderBy: ParseOrderBy("createdAt:desc", sort && direction ? `${sort}:${direction}` : orderBy),
+        orderBy: ParseOrderBy(
+          "createdAt:desc",
+          sort && direction ? `${sort}:${direction}` : orderBy
+        ),
       }),
     ]);
 
