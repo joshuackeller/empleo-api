@@ -232,8 +232,6 @@ router.post(
 
     const response: string = data.choices[0].message.content;
 
-    console.log({ response });
-
     if (!response || response === "Invalid prompt") {
       throw new ClientError("Invalid prompt");
     }
