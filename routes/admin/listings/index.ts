@@ -21,18 +21,28 @@ router.use(OrgMiddleware);
 router.get(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const { page, pageSize, orderBy, sort, direction } = z
+    const { page, pageSize, orderBy, sort, direction, search } = z
       .object({
         page: z.string().optional().default("1").transform(Number),
         pageSize: z.string().optional().default("10").transform(Number),
         orderBy: z.string().optional(),
         sort: z.string().optional(),
         direction: z.string().optional(),
+        search: z.string().optional(),
       })
       .parse(req.query);
 
     const where: Prisma.ListingWhereInput = {
       organizationId: req.organizationId,
+      OR: search
+        ? [
+            { jobTitle: { contains: search, mode: "insensitive" } },
+            { jobDescription: { contains: search, mode: "insensitive" } },
+            { location: { contains: search, mode: "insensitive" } },
+            { salaryRange: { contains: search, mode: "insensitive" } },
+            { shortDescription: { contains: search, mode: "insensitive" } },
+          ]
+        : undefined,
     };
 
     const [count, data] = await prisma.$transaction([
@@ -228,19 +238,28 @@ router.get("/:listingId/applications", async (req: AdminRequest, res) => {
       listingId: z.string(),
     })
     .parse(req.params);
-  const { page, pageSize, orderBy, sort, direction } = z
+  const { page, pageSize, orderBy, sort, direction, search } = z
     .object({
       page: z.string().optional().default("1").transform(Number),
       pageSize: z.string().optional().default("10").transform(Number),
       orderBy: z.string().optional(),
       sort: z.string().optional(),
       direction: z.string().optional(),
+      search: z.string().optional(),
     })
     .parse(req.query);
 
   const where: Prisma.ApplicationWhereInput = {
     listingId: listingId,
     organizationId: req.organizationId,
+    OR: search
+      ? [
+          { firstName: { contains: search, mode: "insensitive" } },
+          { lastName: { contains: search, mode: "insensitive" } },
+          { user: { email: { contains: search, mode: "insensitive" } } },
+          { note: { contains: search, mode: "insensitive" } },
+        ]
+      : undefined,
   };
 
   const [count, data] = await prisma.$transaction([
