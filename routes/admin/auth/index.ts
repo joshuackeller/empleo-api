@@ -29,20 +29,6 @@ router.post(
       })
       .parse(req.body);
 
-    const formData = new FormData();
-    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
-    formData.append("response", cloudflareToken);
-    formData.append("remoteip", req.ip!);
-
-    const { data: response } = await axios.post(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData
-    );
-
-    if (response.success !== true) {
-      throw new ClientError("Invalid token. Refresh page.");
-    }
-
     let admin = await prisma.admin.findUnique({
       where: { email, selfCreated: true },
     });
@@ -92,6 +78,21 @@ router.post(
           },
         },
       });
+
+      // Before finishing, check cloudflare token
+      const formData = new FormData();
+      formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+      formData.append("response", cloudflareToken);
+      formData.append("remoteip", req.ip!);
+
+      const { data: response } = await axios.post(
+        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+        formData
+      );
+
+      if (response.success !== true) {
+        throw new ClientError("Invalid token. Refresh page.");
+      }
 
       const token = jwt.sign(
         { adminId: admin.id },
