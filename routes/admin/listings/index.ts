@@ -11,6 +11,7 @@ import { EmploymentType, Prisma } from "@prisma/client";
 import ParseOrderBy from "../../../src/utilities/ParseOrderBy";
 import { OpenAI } from "openai";
 import axios from "axios";
+import GetSignedUrl from "../../../src/utilities/GetSignedUrl";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const router = express.Router();
@@ -256,6 +257,21 @@ router.get("/:listingId/applications", async (req: AdminRequest, res) => {
       ),
     }),
   ]);
+
+  for (const application of data) {
+    if (application?.resume) {
+      (application.resume as any).url = await GetSignedUrl(
+        application.resume.s3Key
+      );
+      delete (application.resume as any).s3Key;
+    }
+    if (application?.coverLetter) {
+      (application.coverLetter as any).url = await GetSignedUrl(
+        application.coverLetter.s3Key
+      );
+      delete (application.coverLetter as any).s3Key;
+    }
+  }
 
   res.send({ count, data });
 });
