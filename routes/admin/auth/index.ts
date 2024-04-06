@@ -17,15 +17,15 @@ const router = express.Router();
 router.post(
   "/create_account",
   handler(async (req, res) => {
-    const { email, firstName, lastName, password, cloudflareToken } = z
+    const { email, firstName, lastName, password } = z
       .object({
         email: z.string().email().toLowerCase(),
         firstName: z.string(),
         lastName: z.string(),
         password: z.string().min(8, "Password must be 8 characters or more "),
-        cloudflareToken: z.string({
-          required_error: "No Cloudflare Token Provided",
-        }),
+        // cloudflareToken: z.string({
+        //   required_error: "No Cloudflare Token Provided",
+        // }),
       })
       .parse(req.body);
 
@@ -79,25 +79,24 @@ router.post(
         },
       });
 
-      // Before finishing, check cloudflare token
-      const formData = new FormData();
-      formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
-      formData.append("response", cloudflareToken);
-      formData.append("remoteip", req.ip!);
-
-      const { data: response } = await axios.post(
-        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-        formData
-      );
-
-      if (response.success !== true) {
-        throw new ClientError("Invalid token. Refresh page.");
-      }
-
       const token = jwt.sign(
         { adminId: admin.id },
         SecretToken.confirm_account
       );
+
+      // // Before finishing, check cloudflare token
+      // const formData = new FormData();
+      // formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+      // formData.append("response", cloudflareToken);
+      // formData.append("remoteip", req.ip!);
+      // const { data: response } = await axios.post(
+      //   "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      //   formData
+      // );
+      // if (response.success !== true) {
+      //   throw new ClientError("Invalid token. Refresh page.");
+      // }
+
       try {
         await resend.emails.send({
           from: "Empleo <no-reply@mail.empleo.work>",
@@ -155,28 +154,14 @@ router.get(
 router.post(
   "/resend",
   handler(async (req, res) => {
-    const { email, cloudflareToken } = z
+    const { email } = z
       .object({
         email: z.string().email().toLowerCase(),
-        cloudflareToken: z.string({
-          required_error: "No Cloudflare Token Provided",
-        }),
+        // cloudflareToken: z.string({
+        //   required_error: "No Cloudflare Token Provided",
+        // }),
       })
       .parse(req.body);
-
-    const formData = new FormData();
-    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
-    formData.append("response", cloudflareToken);
-    formData.append("remoteip", req.ip!);
-
-    const { data: response } = await axios.post(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData
-    );
-
-    if (response.success !== true) {
-      throw new ClientError("Invalid token. Refresh page.");
-    }
 
     const admin = await prisma.admin.findUnique({
       where: {
@@ -192,6 +177,20 @@ router.post(
         { adminId: admin.id },
         SecretToken.confirm_account
       );
+
+      // Before finishing, check cloudflare token
+      // const formData = new FormData();
+      // formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+      // formData.append("response", cloudflareToken);
+      // formData.append("remoteip", req.ip!);
+      // const { data: response } = await axios.post(
+      //   "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      //   formData
+      // );
+      // if (response.success !== true) {
+      //   throw new ClientError("Invalid token. Refresh page.");
+      // }
+
       try {
         await resend.emails.send({
           from: "Empleo <no-reply@mail.empleo.work>",
@@ -222,29 +221,27 @@ router.post(
 router.post(
   "/sign_in",
   handler(async (req, res) => {
-    const { email, password, cloudflareToken } = z
+    const { email, password } = z
       .object({
         email: z.string(),
         password: z.string(),
-        cloudflareToken: z.string({
-          required_error: "No Cloudflare Token Provided",
-        }),
+        // cloudflareToken: z.string({
+        //   required_error: "No Cloudflare Token Provided",
+        // }),
       })
       .parse(req.body);
 
-    const formData = new FormData();
-    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
-    formData.append("response", cloudflareToken);
-    formData.append("remoteip", req.ip!);
-
-    const { data: response } = await axios.post(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData
-    );
-
-    if (response.success !== true) {
-      throw new ClientError("Invalid token. Refresh Page.");
-    }
+    // const formData = new FormData();
+    // formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    // formData.append("response", cloudflareToken);
+    // formData.append("remoteip", req.ip!);
+    // const { data: response } = await axios.post(
+    //   "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    //   formData
+    // );
+    // if (response.success !== true) {
+    //   throw new ClientError("Invalid token. Refresh Page.");
+    // }
 
     let admin;
     try {
@@ -283,28 +280,23 @@ router.post(
 router.post(
   "/reset_password/request",
   handler(async (req, res) => {
-    const { email, cloudflareToken } = z
+    const { email } = z
       .object({
         email: z.string(),
-        cloudflareToken: z.string({
-          required_error: "No Cloudflare Token Provided",
-        }),
       })
       .parse(req.body);
 
-    const formData = new FormData();
-    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
-    formData.append("response", cloudflareToken);
-    formData.append("remoteip", req.ip!);
-
-    const { data: response } = await axios.post(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData
-    );
-
-    if (response.success !== true) {
-      throw new ClientError("Invalid token. Refresh Page.");
-    }
+    // const formData = new FormData();
+    // formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    // formData.append("response", cloudflareToken);
+    // formData.append("remoteip", req.ip!);
+    // const { data: response } = await axios.post(
+    //   "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    //   formData
+    // );
+    // if (response.success !== true) {
+    //   throw new ClientError("Invalid token. Refresh Page.");
+    // }
 
     let admin;
     try {

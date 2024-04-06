@@ -42,6 +42,50 @@ app.get(
   })
 );
 
+app.get(
+  "/test",
+  handler(async (_req, res) => {
+    const title = "random";
+    const org = await prisma.organization.findFirstOrThrow({
+      where: {
+        title: { contains: title, mode: "insensitive" },
+      },
+    });
+
+    await prisma.file.deleteMany({
+      where: {
+        organizationId: org.id,
+      },
+    });
+    const org1 = await prisma.organization.findFirst({
+      where: {
+        id: org.id,
+      },
+    });
+    console.log("org 1", !!org1);
+
+    await prisma.image.deleteMany({
+      where: {
+        organizationId: org.id,
+      },
+    });
+    const org2 = await prisma.organization.findFirst({
+      where: {
+        id: org.id,
+      },
+    });
+    console.log("org 2", !!org2);
+
+    await prisma.organization.delete({
+      where: {
+        id: org.id,
+      },
+    });
+
+    res.json(org);
+  })
+);
+
 // ADMIN ROUTES
 app.use("/admin/auth", admin_auth);
 app.use("/admin/self", admin_self);
