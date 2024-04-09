@@ -12,8 +12,6 @@ import {
 import GetSignedUrl from "../../../src/utilities/GetSignedUrl";
 import { Status } from "@prisma/client";
 import nano_id from "../../../src/utilities/nano_id";
-import GetFileType from "../../../src/utilities/GetFileType";
-import ParseOrderBy from "../../../src/utilities/ParseOrderBy";
 
 const router = express.Router();
 
@@ -23,7 +21,6 @@ router.use(OrgMiddleware);
 router.get(
   "/",
   handler(async (req: AdminRequest, res) => {
-
     const applications = await prisma.application.findMany({
       where: {
         organizationId: req.organizationId,
@@ -168,6 +165,7 @@ router.put(
       data: {
         status: status,
       },
+      select: ApplicationSelect,
     });
 
     res.json(application);
