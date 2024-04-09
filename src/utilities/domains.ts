@@ -98,7 +98,7 @@ export const UpdateProjectDomain = async (
   newSlug: string,
   dnsRecordId: string
 ) => {
-  await Promise.all([
+  const [, , vercelResponse] = await Promise.all([
     // Add CNAME record to Cloudflare
     axios.patch(
       `https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${dnsRecordId}`,
@@ -136,4 +136,32 @@ export const UpdateProjectDomain = async (
       }
     ),
   ]);
+
+  // Verify domain record if not verified previously
+  if (
+    vercelResponse.data &&
+    vercelResponse.data.verified === false &&
+    vercelResponse.data.verification &&
+    vercelResponse.data.verification.length > 0 &&
+    vercelResponse.data.verification[0].reason === "pending_domain_verification"
+  ) {
+    try {
+      const verification = vercelResponse.data.verification[0];
+      await axios.post(
+        `https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records`,
+        {
+          name: verification.domain,
+          content: verification.value,
+          type: verification.type,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.CLOUDFLARE_TOKEN}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("COULD NOT ADD DOMAIN VERIFICATION", error);
+    }
+  }
 };
