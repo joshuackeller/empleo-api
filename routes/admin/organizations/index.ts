@@ -74,32 +74,31 @@ router.get(
 router.post(
   "/",
   handler(async (req: AdminRequest, res) => {
-    const { title, slug, cloudflareToken } = z
+    const { title, slug } = z
       .object({
         title: z.string(),
         slug: z.string().refine((value) => /^[a-z0-9-]+$/.test(value), {
           message:
             "Slug can only contain lowercase letters, numbers, and dashes",
         }),
-        cloudflareToken: z.string({
-          required_error: "No Cloudflare Token Provided",
-        }),
+        // cloudflareToken: z.string({
+        //   required_error: "No Cloudflare Token Provided",
+        // }),
       })
       .parse(req.body);
 
-    const formData = new FormData();
-    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
-    formData.append("response", cloudflareToken);
-    formData.append("remoteip", req.ip!);
+    // const formData = new FormData();
+    // formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    // formData.append("response", cloudflareToken);
+    // formData.append("remoteip", req.ip!);
+    // const { data: response } = await axios.post(
+    //   "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    //   formData
+    // );
+    // if (response.success !== true) {
+    //   throw new ClientError("Invalid token. Refresh Page.");
+    // }
 
-    const { data: response } = await axios.post(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData
-    );
-
-    if (response.success !== true) {
-      throw new ClientError("Invalid token. Refresh Page.");
-    }
     const domain = await AddDomainToProject(slug);
     const organization = await prisma.organization.create({
       data: {

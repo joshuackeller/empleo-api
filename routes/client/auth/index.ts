@@ -88,28 +88,28 @@ router.use(OrgMiddleware);
 router.post(
   "/request_link",
   handler(async (req: ClientRequest, res) => {
-    const { email, cloudflareToken, returnRoute, listingId } = z
+    const { email, returnRoute, listingId } = z
       .object({
         email: z.string().email().toLowerCase(),
-        cloudflareToken: z.string({
-          required_error: "No Cloudflare Token Provided",
-        }),
+        // cloudflareToken: z.string({
+        //   required_error: "No Cloudflare Token Provided",
+        // }),
         returnRoute: z.string().optional(),
         listingId: z.string().optional(),
       })
       .parse(req.body);
 
-    const formData = new FormData();
-    formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
-    formData.append("response", cloudflareToken);
-    formData.append("remoteip", req.ip!);
-    const { data: response } = await axios.post(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      formData
-    );
-    if (response.success !== true) {
-      throw new ClientError("Invalid token. Refresh page.");
-    }
+    // const formData = new FormData();
+    // formData.append("secret", process.env.CAPTCHA_SECRET_KEY!);
+    // formData.append("response", cloudflareToken);
+    // formData.append("remoteip", req.ip!);
+    // const { data: response } = await axios.post(
+    //   "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    //   formData
+    // );
+    // if (response.success !== true) {
+    //   throw new ClientError("Invalid token. Refresh page.");
+    // }
 
     const [organization, user] = await prisma.$transaction([
       prisma.organization.findUniqueOrThrow({

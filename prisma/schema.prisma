@@ -36,9 +36,9 @@ model Organization {
     listing           Listing[]
     images            Image[]   @relation("OrganizationImages")
     logoId            String?   @unique @map("logo_id")
-    logo              Image?    @relation("LogoRelation", fields: [logoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    logo              Image?    @relation("LogoRelation", fields: [logoId], references: [id], onDelete: SetNull, onUpdate: Cascade)
     bannerId          String?   @unique @map("banner_id")
-    banner            Image?    @relation("BannerRelation", fields: [bannerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    banner            Image?    @relation("BannerRelation", fields: [bannerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
     headerFont        Font      @default(inter) @map("header_font")
     bodyFont          Font      @default(inter) @map("body_font")
     primaryColor      String?   @map("primary_color")
